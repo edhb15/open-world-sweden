@@ -14,6 +14,7 @@ import { setMaxAnisotropy } from './render/textures.js';
 import { envUniforms } from './render/terrainmesh.js';
 import { buildingChunkJob, indexWorldContent, buildingEmissive } from './render/buildings.js';
 import { vegetationChunkJob, indexParks } from './render/vegetation.js';
+import { Props } from './render/props.js';
 import { CollisionWorld } from './vehicle/collide.js';
 import { PlayerCar } from './vehicle/playercar.js';
 import { CameraRig } from './vehicle/cameras.js';
@@ -66,20 +67,20 @@ export class Game {
       ch.group.add(st.group); st.group.updateMatrixWorld(true);
       if (st.colliders && (name !== 'trees' || st.lod === 0)) this.collision.add(name + ':' + ch.cx + ':' + ch.cz, st.colliders);
       if (name === 'buildings' && this.parked) this.parked.addSpots(ch, st.carSpots || []);
-      if (name === 'roads' && this.props) this.props.attach(ch);
     };
     const ungrp = (ch, st, name) => {
       ch.group.remove(st.group);
       st.group.traverse((o) => { if (o.isInstancedMesh) o.dispose(); else if (o.geometry && !o.userData.shared) o.geometry.dispose(); });
       this.collision.remove(name + ':' + ch.cx + ':' + ch.cz);
       if (name === 'buildings' && this.parked) this.parked.removeSpots(ch);
-      if (name === 'roads' && this.props) this.props.detach(ch);
     };
     this.layers = [
       { name: 'roads', maxLod: 2, lodOf: (l) => (l <= 1 ? 1 : 0), job: (ch, lod, res) => roadChunkJob(world, ch.cx, ch.cz, lod, res), attach: (c, s) => grp(c, s, 'roads'), detach: (c, s) => ungrp(c, s, 'roads') },
       { name: 'buildings', maxLod: 2, lodOf: (l) => (l === 0 ? 0 : 1), job: (ch, lod, res) => buildingChunkJob(world, ch.cx, ch.cz, lod, res), attach: (c, s) => grp(c, s, 'buildings'), detach: (c, s) => ungrp(c, s, 'buildings') },
       { name: 'trees', maxLod: 2, lodOf: (l) => Math.min(l, 2), job: (ch, lod, res) => vegetationChunkJob(world, ch.cx, ch.cz, lod, res), attach: (c, s) => grp(c, s, 'trees'), detach: (c, s) => ungrp(c, s, 'trees') },
     ];
+    this.props = new Props(this);
+    this.layers.push({ name: 'props', maxLod: 1, lodOf: () => 0, job: (ch, lod, res) => this.props.job(ch, lod, res), attach: (c, s) => grp(c, s, 'props'), detach: (c, s) => ungrp(c, s, 'props') });
     this.chunks = new ChunkManager({ scene: this.scene, world, terrain: this.terrain, layers: this.layers, ranges: this.quality.ranges });
     this.chunks.budget = this.quality.budget;
     this.input = new Input(settings);
@@ -203,6 +204,8 @@ export class Game {
       this.env.lat = latitudeAt(P.phys.p[0], P.phys.p[2]);
     }
     for (const m of this.modules) if (m.update) m.update(dt, this);
+    this.props.update(dt, this);
+    for (const sg of this.world.signals) sg.update(simDt);
     const cp = this.camera.position;
     this.env.update(simDt, cp);
     buildingEmissive.value = clamp(this.env.night * 1.4 + (1 - this.env.daylight) * 0.6, 0, 1.4);
@@ -211,6 +214,7 @@ export class Game {
     this.render();
   }
   render() {
+    if (this.noRender) return;
     for (const m of this.modules) if (m.beforeRender) m.beforeRender(this);
     this.renderer.render(this.scene, this.camera);
   }
