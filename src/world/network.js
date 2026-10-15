@@ -121,6 +121,7 @@ export function xsOffset(xs, bank, d) {
   }
   return y;
 }
+export function xsBase(xs, bank, d) { return surfaceAtEdge(xs, bank, d < xs.edgeL ? xs.edgeL : d > xs.edgeR ? xs.edgeR : d); }
 function surfaceAtEdge(xs, bank, d) {
   let crownY;
   const ad = Math.abs(d - xs.c);
@@ -943,8 +944,9 @@ export class Network {
 
   /* Terrain corridor: blend natural ground (hNat) toward road heights.
      Returns the modified height. Bridges do not affect terrain. */
-  corridor(x, z, hNat) {
+  corridor(x, z, hNat, info) {
     const list = this.cellList(x, z);
+    if (info) info.w = 0;
     if (!list) return hNat;
     let bestW = 0, bestT = hNat, bestScore = -Infinity;
     for (const enc of list) {
@@ -984,7 +986,7 @@ export class Network {
       const score = w * 1000 - ad - (r.T.urban ? 0 : 0.5);
       if (score > bestScore) { bestScore = score; bestW = w; bestT = target; }
     }
-    // junction patches: make sure the ground stays under the patch
+    if (info) info.w = bestW;
     return bestW > 0 ? lerp(hNat, bestT, bestW) : hNat;
   }
 

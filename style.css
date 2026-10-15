@@ -1,0 +1,7 @@
+html, body { margin: 0; height: 100%; background: #0b0f14; overflow: hidden; font-family: system-ui, sans-serif; color: #eef; }
+#app canvas { display: block; width: 100vw; height: 100vh; }
+#loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: #0b0f14; z-index: 50; }
+#loading.hidden { display: none; }
+.ld-title { font-size: 28px; letter-spacing: 6px; font-weight: 700; }
+.ld-bar { width: 280px; height: 4px; background: #223; border-radius: 2px; overflow: hidden; }
+#ld-fill { display: block; height: 100%; width: 0; background: #ffcd00; transition: width .2s; }
