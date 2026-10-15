@@ -49,6 +49,16 @@ export class PlayerCar {
       wind: null,
     };
     this.tmpG = { y: 0, nx: 0, ny: 1, nz: 0, surface: 'asphalt', wet: 0, snow: 0, ice: 0 };
+    // headlight spot lights (left & right) for night driving
+    this.beams = [];
+    const zf = -spec.body.wb * (1 - spec.weightF) - 0.9;
+    for (const sx of [-0.55, 0.55]) {
+      const L = new THREE.SpotLight(0xfff2dd, 0, 0, 0.5, 0.55, 1.6);
+      L.position.set(sx * spec.body.W * 0.7, 0.55 - spec.cgH, zf);
+      L.target.position.set(sx * 2, -spec.cgH - 0.8, zf - 30);
+      this.mesh.body.add(L, L.target);
+      this.beams.push(L);
+    }
   }
 
   place(x, z, yaw, onRoadY = null) {
@@ -260,6 +270,13 @@ export class PlayerCar {
       }
     } else if (this.wiperPhase > 0) { this.wiperPhase = Math.min(1, this.wiperPhase + dt); if (this.wiperPhase >= 1) this.wiperPhase = 0; }
     const braking = P.pedalBrake > 0.05 || (P.ev && P.pedalThrottle < 0.02 && P.speed > 3);
+    const dim = g.env ? clamp(1.2 - g.env.daylight, 0, 1) : 0;
+    for (const L of this.beams) {
+      L.intensity = this.headOn ? (this.highOn ? 900 : 420) * dim : 0;
+      L.angle = this.highOn ? 0.42 : 0.55;
+      L.target.position.y = this.highOn ? -this.spec.cgH - 0.2 : -this.spec.cgH - 1.4;
+      L.visible = L.intensity > 0.5;
+    }
     this.mesh.setLights({
       head: this.headOn && P.running !== null, high: this.highOn, drl: P.running || this.headOn, brake: braking,
       indL: (this.indicator === -1 || this.indicator === 2) && this.blinkOn, indR: (this.indicator === 1 || this.indicator === 2) && this.blinkOn,

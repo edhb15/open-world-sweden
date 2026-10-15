@@ -16,6 +16,7 @@ import { buildingChunkJob, indexWorldContent, buildingEmissive } from './render/
 import { vegetationChunkJob, indexParks } from './render/vegetation.js';
 import { Props } from './render/props.js';
 import { Traffic } from './traffic/traffic.js';
+import { Weather } from './world/weather.js';
 import { CollisionWorld } from './vehicle/collide.js';
 import { PlayerCar } from './vehicle/playercar.js';
 import { CameraRig } from './vehicle/cameras.js';
@@ -90,7 +91,9 @@ export class Game {
     this.rig.fovBase = settings.fov;
     this.rig.setMode(settings.camera || 'cockpit');
     this.modules = []; // things with update(dt) hooks (traffic, audio, weather, hud...)
+    this.weather = this.addModule(new Weather(this));
     this.traffic = this.addModule(new Traffic(this));
+    this.season = 'summer';
     this.placeT = 0;
     this.clock = new THREE.Clock();
     this.fps = 60;

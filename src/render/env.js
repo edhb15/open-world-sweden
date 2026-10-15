@@ -82,7 +82,7 @@ export class Environment {
     zen.lerp(new THREE.Color(0.55, 0.58, 0.62).multiplyScalar(day * 0.9 + 0.05), W.overcast * 0.85);
     this.hemi.color.copy(zen);
     this.hemi.groundColor.setRGB(lerp(0.04, 0.32, day) + snowGround * 0.2 * day, lerp(0.04, 0.29, day) + snowGround * 0.22 * day, lerp(0.05, 0.22, day) + snowGround * 0.26 * day);
-    this.hemi.intensity = lerp(0.22 + snowGround * 0.25 + moonBright * 0.12, 1.15, day) * (1 - W.storm * 0.3);
+    this.hemi.intensity = lerp(0.22 + snowGround * 0.25 + moonBright * 0.12, 1.15, day) * (1 - W.storm * 0.3) + (this.lightning || 0) * 4;
     // fog
     const fogC = skyC.clone();
     if (W.overcast > 0 || W.fog > 0) fogC.lerp(new THREE.Color(0.62, 0.65, 0.68).multiplyScalar(lerp(0.05, 1, day)), Math.max(W.overcast * 0.7, W.fog));
