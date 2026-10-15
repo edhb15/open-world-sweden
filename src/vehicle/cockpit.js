@@ -116,15 +116,15 @@ export class Cockpit {
     this.mirrorCam = new THREE.PerspectiveCamera(48, 512 / 160, 0.5, 900);
     const mirMat = new THREE.MeshBasicMaterial({ map: this.rt.texture });
     // flip horizontally (mirror)
-    const mg = new THREE.PlaneGeometry(0.25, 0.07);
+    const mg = new THREE.PlaneGeometry(0.23, 0.065);
     const uv = mg.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, 1 - uv.getX(i));
-    this.rearMirror = add(mg, mirMat, 0.0, roof - 0.14, zRoofF + 0.0, 0.08, Math.PI - 0.25, 0);
-    add(new THREE.BoxGeometry(0.27, 0.082, 0.025), M.black, 0.0, roof - 0.14, zRoofF - 0.017, 0.08, -0.25, 0);
+    this.rearMirror = add(mg, mirMat, 0.0, roof - 0.12, zRoofF + 0.0, -0.08, -0.25, 0);
+    add(new THREE.BoxGeometry(0.25, 0.077, 0.025), M.black, 0.0, roof - 0.12, zRoofF - 0.017, -0.08, -0.25, 0);
     // side mirror glass (inside view of exterior mirrors), sub-rects of the same target
     const sideGeo = (u0, u1) => { const g = new THREE.PlaneGeometry(0.17, 0.11); const a = g.attributes.uv; for (let i = 0; i < a.count; i++) { const u = a.getX(i); a.setX(i, lerp(u1, u0, u)); a.setY(i, lerp(0.15, 0.85, a.getY(i))); } return g; };
     if (!big) {
       for (const sx of [-1, 1]) {
-        const m = add(sideGeo(sx < 0 ? 0.0 : 0.62, sx < 0 ? 0.38 : 1.0), mirMat, sx * (B.W / 2 + 0.07), belt + 0.08, G.bb.min.z + G.P.green.aBase + 0.18 + 0.05, 0, Math.PI + sx * 0.25, 0);
+        const m = add(sideGeo(sx < 0 ? 0.0 : 0.62, sx < 0 ? 0.38 : 1.0), mirMat, sx * (B.W / 2 + 0.07), belt + 0.08, -G.xCG + G.P.green.aBase + 0.18 + 0.052, 0, sx < 0 ? 0.1 : -0.18, 0);
       }
     }
     // windshield rain layer + wipers
@@ -151,10 +151,30 @@ export class Cockpit {
     this.lastWiper = 0;
     this.clusterT = 0;
     this.mirrorT = 0;
+    this.clipPlane = new THREE.Plane();
+    this.clipN = new THREE.Vector3(0, 0, -1);
+    this.clipZ = zA + 0.36;
     this.prepareDial();
   }
 
   setVisible(v) {
+    if (v !== this.group.visible) {
+      // from inside, cut away the solid lower body behind the dash so the
+      // cabin floor, doors and console show instead of the body's top face
+      const lm = this.car.mesh.lowerMesh;
+      if (v) {
+        if (!this.clipMat || this.clipSrc !== this.car.mesh.paint) {
+          this.clipSrc = this.car.mesh.paint;
+          this.clipMat = this.clipSrc.clone();
+          this.clipMat.clippingPlanes = [this.clipPlane];
+        }
+        lm.material = this.clipMat;
+        lm.onBeforeRender = () => this.clipPlane.set(this.clipN, this.clipZ).applyMatrix4(lm.matrixWorld);
+      } else {
+        lm.material = this.car.mesh.paint;
+        lm.onBeforeRender = () => {};
+      }
+    }
     this.group.visible = v;
     this.car.mesh.cabinMesh.visible = !v;
     // hide the exterior greenhouse glass from the inside to avoid double glass
@@ -199,6 +219,12 @@ export class Cockpit {
     const ang = Math.sin(ph * Math.PI) * 1.7;
     this.wipers[0].rotation.z = -1.42 + ang; this.wipers[1].rotation.z = -1.42 + ang;
     this.rain(dt, game, ph);
+    // faint instrument/ambient glow so the cabin is readable at night
+    const glow = game.env ? game.env.night * (P.running ? 1 : 0.4) : 0;
+    if (Math.abs(glow - (this.glow || 0)) > 0.01) {
+      this.glow = glow;
+      for (const k in this.M) this.M[k].emissive.copy(this.M[k].color).multiplyScalar((k === 'head' ? 0.04 : 0.14) * glow);
+    }
     this.clusterT -= dt;
     if (this.clusterT <= 0) { this.clusterT = 1 / 20; this.drawCluster(game); }
   }

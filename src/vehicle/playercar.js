@@ -247,7 +247,7 @@ export class PlayerCar {
     const g = this.game;
     // headlights: Swedish law requires dipped beams or DRL at all times
     const dark = g.env ? g.env.night > 0.2 || g.env.daylight < 0.45 || (g.env.weather.fog > 0.3) || g.env.weather.rain > 0.5 : false;
-    if (this.lightMode === 'auto') { this.headOn = dark; }
+    if (this.lightMode === 'auto') { this.headOn = dark && (P.running || P.starter > 0); }
     else if (this.lightMode === 'off') this.headOn = false;
     else this.headOn = true;
     this.highOn = this.lightMode === 'high';

@@ -49,6 +49,7 @@ export class Game {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.quality.pixelRatio * (window.devicePixelRatio > 1 ? 1.25 : 1)));
     renderer.setSize(innerWidth, innerHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.localClippingEnabled = true;
     renderer.shadowMap.enabled = this.quality.shadows > 0;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.getElementById('app').appendChild(renderer.domElement);

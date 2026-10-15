@@ -51,6 +51,7 @@ export class Environment {
   }
   update(dt, cam) {
     this.time += dt;
+    this.sky.mesh.position.copy(cam);
     sunDirection(this.lat, this.day, this.clock, this.sunDir);
     moonDirection(this.lat, this.day, this.clock, this.moonDir);
     const W = this.weather;
