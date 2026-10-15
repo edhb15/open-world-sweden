@@ -21,7 +21,7 @@ const tele = await page.evaluate(async (secs) => {
   const steps = Math.round(secs * 30);
   for (let i = 0; i < steps; i++) {
     g.frame(1 / 30);
-    if (i % 30 === 0) { const P = g.player.phys; out.push([ (i/30).toFixed(0), (P.fwdSpeed*3.6).toFixed(0)+'kmh', P.gearLabel(), P.rpm.toFixed(0)+'rpm', 'y='+P.p[1].toFixed(2), 'surf='+P.wheels.map(w=>w.surface[0]+(w.contact?'':'!')).join(''), 'roll='+P.R[3].toFixed(2), g.player.roadInfo && g.player.roadInfo.road ? g.player.roadInfo.road.name : '-', 'off='+(g.player.roadInfo? g.player.roadInfo.off.toFixed(1):'-') ].join(' ')); }
+    if (i % 30 === 0) { const P = g.player.phys; out.push([ (i/30).toFixed(0), (P.fwdSpeed*3.6).toFixed(0)+'kmh', P.gearLabel(), P.rpm.toFixed(0)+'rpm', 'y='+P.p[1].toFixed(2), 'surf='+P.wheels.map(w=>w.surface[0]+(w.contact?'':'!')).join(''), 'roll='+P.R[3].toFixed(2), g.player.roadInfo && g.player.roadInfo.road ? g.player.roadInfo.road.name : '-', 'off='+(g.player.roadInfo? g.player.roadInfo.off.toFixed(1):'-'), 'ai='+g.traffic.cars.length, 'moving='+g.traffic.cars.filter(c=>c.v>1).length, 'avgv='+(g.traffic.cars.reduce((a,c)=>a+c.v,0)/Math.max(1,g.traffic.cars.length)*3.6).toFixed(0), 'crash='+g.traffic.cars.filter(c=>c.state==='crashed').length, 'kinds='+[...new Set(g.traffic.cars.map(c=>c.kind))].join('/') ].join(' ')); }
   }
   g.noRender = false; g.frame(1/30);
   return out;

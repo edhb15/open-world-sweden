@@ -467,7 +467,8 @@ export class CarPhysics {
     } else if (inGear) {
       if (this.autoMode) {
         const wt = Gr * this.drivenSpeed();
-        this.lockup = this.gear >= 3 && this.we > 0 && Math.abs(wt / Math.max(this.we, 1)) > 0.86 && throttle < 0.92 && Math.abs(fwdSpeed) > 9;
+        const idleW = E.idle * Math.PI / 30;
+        this.lockup = this.gear >= 3 && this.we > 0 && Math.abs(wt / Math.max(this.we, 1)) > 0.86 && throttle < 0.92 && Math.abs(fwdSpeed) > 9 && Math.abs(wt) > idleW * 1.45 && brake < 0.5;
         mode = this.shiftT > 0.05 ? 'tc' : this.lockup ? 'locked' : 'tc';
         clutchCap = this.peakT * 2.2;
       } else {
@@ -554,7 +555,7 @@ export class CarPhysics {
     if (this.clutchLocked && !this.ev) this.we = Gr * this.drivenSpeedNew(drivenW);
     if (!this.ev) {
       this.we = Math.max(this.we, 0);
-      if (this.running && this.we * 30 / Math.PI < 320 && !(this.starter > 0)) {
+      if (this.running && this.we * 30 / Math.PI < 320 && !(this.starter > 0) && !this.autoMode) {
         this.running = false; this.stalled = true; this.events.push('stall');
       }
       if (!this.running && this.starter <= 0) this.we = Math.max(0, this.we - 60 * dt * (this.clutchLocked ? 0 : 1));

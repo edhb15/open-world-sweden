@@ -104,7 +104,9 @@ export function autopilot(game, targetKmh = 50) {
     const curv = 2 * lat / (lat * lat + lon * lon);
     const steerAng = Math.atan(curv * P.spec.body.wb);
     const steer = clamp(steerAng / (P.spec.steer.max * Math.PI / 180), -1, 1);
-    const vT = Math.min(targetKmh * KMH, path.speed * 1.05, Math.sqrt(3.5 / Math.max(Math.abs(curv), 1e-3)));
+    let vT = Math.min(targetKmh * KMH, path.speed * 1.05, Math.sqrt(3.5 / Math.max(Math.abs(curv), 1e-3)));
+    const lg = g.traffic && g.traffic.leaderGap(g.player);
+    if (lg && lg.dist < 60) vT = Math.min(vT, Math.max(0, lg.speed + (lg.dist - 8 - P.fwdSpeed * 1.2) * 0.4));
     const err = vT - P.fwdSpeed;
     return { throttle: clamp(err * 0.35, 0, 1), brake: clamp(-err * 0.2, 0, 1), steer, steerAssist: false, directSteer: true, shiftUp: !P.autoMode && P.rpm > P.spec.engine.redline * 0.8 && P.shiftT <= 0, shiftDown: !P.autoMode && P.gear > 1 && P.rpm < P.spec.engine.idle * 1.6 && P.shiftT <= 0 };
   };

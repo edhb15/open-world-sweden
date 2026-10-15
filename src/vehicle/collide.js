@@ -107,6 +107,7 @@ function boxPoints(b) {
 }
 function obbObb(a, c, contacts) {
   // c: {x,z,hw,hd,cs,sn}; its axes: u = (cs, sn) along width (hw), v = (-sn, cs) along depth (hd)
+  if (c.cs == null) { c.cs = Math.cos(c.rot); c.sn = Math.sin(c.rot); }
   const cu = [c.cs, c.sn], cv = [-c.sn, c.cs];
   const axes = [[a.ax, a.az], [a.bx, a.bz], cu, cv];
   const dx = c.x - a.x, dz = c.z - a.z;

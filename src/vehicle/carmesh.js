@@ -367,3 +367,78 @@ export function randomPlate(seed) {
   t += r() < 0.3 ? LETTERS[Math.floor(r() * LETTERS.length)] : Math.floor(r() * 10);
   return t;
 }
+
+/* ---------------- Instancing support for traffic ---------------- */
+// Merges a vehicle into 4 geometries: body (paint, instance-coloured), dark (glass/trim, vertex coloured),
+// wheel (single wheel at origin), lights (quads with aLight attribute: 0 head, 1 tail, 2 brake, 3 indL, 4 indR, 5 rev).
+const partsCache = new Map();
+export function instancedParts(spec) {
+  if (partsCache.has(spec.id)) return partsCache.get(spec.id);
+  const mesh = new CarMesh(spec, { color: 0xffffff, plate: 'ABC 123', metallic: false });
+  mesh.group.updateMatrixWorld(true);
+  const body = [], dark = [], lights = [];
+  const tmpM = new THREE.Matrix4();
+  const push = (arr, geo, matrix, color, light = -1) => {
+    let g = geo.index ? geo.toNonIndexed() : geo.clone();
+    g.applyMatrix4(matrix);
+    if (!g.attributes.normal) g.computeVertexNormals();
+    const n = g.attributes.position.count;
+    const col = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { col[i * 3] = color.r; col[i * 3 + 1] = color.g; col[i * 3 + 2] = color.b; }
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    if (light >= 0) g.setAttribute('aLight', new THREE.BufferAttribute(new Float32Array(n).fill(light), 1));
+    arr.push(g);
+  };
+  const lightOf = (m) => m === mesh.headMat ? 0 : m === mesh.tailMat ? 1 : m === mesh.brakeMat ? 2 : m === mesh.indMatL ? 3 : m === mesh.indMatR ? 4 : m === mesh.revMat ? 5 : -1;
+  mesh.body.traverse((o) => {
+    if (!o.isMesh) return;
+    const m = o.matrixWorld;
+    if (o === mesh.greenMesh) {
+      // split groups: 0 glass, 1 roof paint, 2 glass
+      for (const gr of o.geometry.groups) {
+        const sub = new THREE.BufferGeometry();
+        for (const k in o.geometry.attributes) {
+          const a = o.geometry.attributes[k];
+          sub.setAttribute(k, new THREE.BufferAttribute(a.array.slice(gr.start * a.itemSize, (gr.start + gr.count) * a.itemSize), a.itemSize));
+        }
+        if (gr.materialIndex === 1) push(body, sub, m, new THREE.Color(1, 1, 1));
+        else push(dark, sub, m, new THREE.Color(0.03, 0.045, 0.06));
+      }
+      return;
+    }
+    const L = lightOf(o.material);
+    if (L >= 0) { push(lights, o.geometry, m, new THREE.Color(1, 1, 1), L); return; }
+    if (o.material === mesh.paint || (o.material && o.material.clearcoat === 1 && o.material !== CAR_MATS.glass)) { push(body, o.geometry, m, new THREE.Color(1, 1, 1)); return; }
+    const c = o.material && o.material.color ? o.material.color.clone() : new THREE.Color(0.1, 0.1, 0.1);
+    if (o.material && o.material.map) c.setRGB(0.85, 0.85, 0.85);
+    push(dark, o.geometry, m, c);
+  });
+  // wheel at origin (tyre + rim)
+  const w0 = mesh.wheels[1];
+  const wheel = [];
+  w0.spin.children.forEach((o) => { if (o.isMesh) push(wheel, o.geometry, new THREE.Matrix4(), o.material.color ? o.material.color.clone() : new THREE.Color(0.1, 0.1, 0.1)); });
+  const res = {
+    body: mergeColored(body), dark: mergeColored(dark), wheel: mergeColored(wheel), lights: mergeColored(lights, true),
+    wheelPos: mesh.wheels.map((w) => [w.pivot.position.x, w.pivot.position.z, w.left]),
+  };
+  partsCache.set(spec.id, res);
+  return res;
+}
+function mergeColored(list, withLight = false) {
+  let n = 0;
+  for (const g of list) n += g.attributes.position.count;
+  const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), col = new Float32Array(n * 3), lig = withLight ? new Float32Array(n) : null;
+  let o = 0;
+  for (const g of list) {
+    pos.set(g.attributes.position.array, o * 3); nor.set(g.attributes.normal.array, o * 3); col.set(g.attributes.color.array, o * 3);
+    if (lig) lig.set(g.attributes.aLight.array, o);
+    o += g.attributes.position.count;
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  out.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  if (lig) out.setAttribute('aLight', new THREE.BufferAttribute(lig, 1));
+  out.computeBoundingSphere();
+  return out;
+}

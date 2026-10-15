@@ -15,6 +15,7 @@ import { envUniforms } from './render/terrainmesh.js';
 import { buildingChunkJob, indexWorldContent, buildingEmissive } from './render/buildings.js';
 import { vegetationChunkJob, indexParks } from './render/vegetation.js';
 import { Props } from './render/props.js';
+import { Traffic } from './traffic/traffic.js';
 import { CollisionWorld } from './vehicle/collide.js';
 import { PlayerCar } from './vehicle/playercar.js';
 import { CameraRig } from './vehicle/cameras.js';
@@ -88,6 +89,8 @@ export class Game {
     this.rig.fovBase = settings.fov;
     this.rig.setMode(settings.camera || 'cockpit');
     this.modules = []; // things with update(dt) hooks (traffic, audio, weather, hud...)
+    this.traffic = this.addModule(new Traffic(this));
+    this.placeT = 0;
     this.clock = new THREE.Clock();
     this.fps = 60;
     this.frameMs = 16;
@@ -202,6 +205,8 @@ export class Game {
       } else this.rig.update(dt, P, this);
       // latitude follows the player for sun position & daylight
       this.env.lat = latitudeAt(P.phys.p[0], P.phys.p[2]);
+      this.placeT -= dt;
+      if (this.placeT <= 0) { this.placeT = 1; this.updatePlace(); }
     }
     for (const m of this.modules) if (m.update) m.update(dt, this);
     this.props.update(dt, this);
@@ -239,6 +244,23 @@ export class Game {
     if (A.gps) this.emit('gps');
   }
 
+  updatePlace() {
+    const p = this.player.phys.p;
+    const c = cityAt(p[0], p[2], 150);
+    let name = null, kind = 'rural';
+    if (c) { name = c.name; kind = 'city'; }
+    else {
+      let best = null, bd = 900;
+      for (const pl of this.world.places) {
+        if (pl.kind === 'city') continue;
+        const d = Math.hypot(pl.x - p[0], pl.z - p[2]);
+        if (d < bd) { bd = d; best = pl; }
+      }
+      if (best) { name = best.name; kind = bd < 450 ? 'village' : 'rural'; }
+    }
+    if (name !== this.placeName) { const prev = this.placeName; this.placeName = name; this.placeKind = kind; if (name && prev !== undefined) this.emit('place', name, kind); }
+    this.placeKind = kind;
+  }
   resetToRoad() {
     const P = this.player;
     const p = P.phys.p;
