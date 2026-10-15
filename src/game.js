@@ -19,6 +19,7 @@ import { Traffic } from './traffic/traffic.js';
 import { CollisionWorld } from './vehicle/collide.js';
 import { PlayerCar } from './vehicle/playercar.js';
 import { CameraRig } from './vehicle/cameras.js';
+import { Cockpit } from './vehicle/cockpit.js';
 import { Input } from './input/input.js';
 import { settings, save, saveGame } from './core/settings.js';
 import { clamp, lerp } from './core/math.js';
@@ -129,7 +130,7 @@ export class Game {
   spawnPlayer(carCfg, start) {
     if (this.player) this.player.dispose();
     this.player = new PlayerCar(this, carCfg);
-    this.player.cockpit = null;
+    this.player.cockpit = new Cockpit(this.player, this);
     const pos = this.startPosition(start);
     this.player.place(pos.x, pos.z, pos.yaw, pos.y);
     this.emit('player', this.player);
@@ -203,6 +204,9 @@ export class Game {
         const c = P.mesh.group.position;
         this.rig.orbitAround(dt, { x: c.x, y: c.y, z: c.z }, this.rig.orbitAuto !== false);
       } else this.rig.update(dt, P, this);
+      const inside = this.rig.mode === 'cockpit' && !this.rig.orbitMode && !this.rig.fixedView;
+      P.cockpit.setVisible(inside);
+      if (inside) P.cockpit.update(dt, this);
       // latitude follows the player for sun position & daylight
       this.env.lat = latitudeAt(P.phys.p[0], P.phys.p[2]);
       this.placeT -= dt;
@@ -221,6 +225,8 @@ export class Game {
   render() {
     if (this.noRender) return;
     for (const m of this.modules) if (m.beforeRender) m.beforeRender(this);
+    const P = this.player;
+    if (P && P.cockpit && P.cockpit.group.visible && this.qualityName !== 'low') P.cockpit.renderMirrors(this.renderer, this.scene);
     this.renderer.render(this.scene, this.camera);
   }
 
