@@ -1,0 +1,77 @@
+/* Swedish / English UI strings. */
+import { settings } from './settings.js';
+
+const STR = {
+  sv: {
+    title: 'OPEN WORLD SWEDEN', subtitle: 'En svensk körsimulator',
+    drive: 'Kör', continue: 'Fortsätt', garage: 'Garage', settings: 'Inställningar', controls: 'Kontroller', help: 'Hjälp', quit: 'Avsluta till meny',
+    start: 'Starta', back: 'Tillbaka', resume: 'Fortsätt köra', map: 'Karta', world: 'Väder & tid', reset: 'Återställ bil till väg',
+    startLoc: 'Startplats', destination: 'Destination', none: 'Ingen (fri körning)', vehicle: 'Fordon', season: 'Årstid', time: 'Tid', weather: 'Väder',
+    now: 'Nu (verklig tid)', spring: 'Vår', summer: 'Sommar', autumn: 'Höst', winter: 'Vinter',
+    clear: 'Klart', cloudy: 'Molnigt', overcast: 'Mulet', rain: 'Regn', storm: 'Åska', snow: 'Snöfall', fog: 'Dimma', dynamic: 'Växlande',
+    morning: 'Morgon', noon: 'Mitt på dagen', evening: 'Kväll', night: 'Natt',
+    speed: 'km/h', gear: 'Växel', fuel: 'Bränsle', battery: 'Batteri', odo: 'Mätare',
+    pressIgnition: 'Tryck {key} för att starta motorn', engineStalled: 'Motorn tjuvstannade', engineDead: 'Motorn har slutat fungera',
+    fuelEmpty: 'Tanken är tom', parked: 'Parkerad', refuel: 'Tanka', charge: 'Ladda', refueling: 'Tankar…', refuelDone: 'Tankning klar',
+    dealership: 'Bilhallen', enterDealer: 'Gå in i bilhallen', repair: 'Reparera bilen', repairDone: 'Bilen är reparerad',
+    fine: 'Böter', speeding: 'Fortkörning', redLight: 'Rödljuskörning', fineText: '{what}: {amount}', licenseRevoked: 'Körkortet indraget – kör försiktigt!',
+    speedCamera: 'Trafiksäkerhetskamera', welcomeTo: 'Välkommen till {place}',
+    turnLeft: 'Sväng vänster', turnRight: 'Sväng höger', straight: 'Fortsätt rakt fram', keepLeft: 'Håll vänster', keepRight: 'Håll höger',
+    exit: 'Ta avfarten', roundabout: 'I rondellen, ta {n}:a avfarten', arrive: 'Du är framme', recalc: 'Beräknar ny rutt…', toward: 'mot', onto: 'in på',
+    in: 'Om', meters: 'm', km: 'km', distanceLeft: 'kvar', eta: 'Ankomst',
+    money: 'Plånbok', paid: 'Betalt', cost: 'Kostnad', buy: 'Köp', owned: 'Ägd', select: 'Välj', price: 'Pris', color: 'Färg', wheels: 'Fälgar', tires: 'Däck',
+    plate: 'Registreringsskylt', tune: 'Motoroptimering', suspension: 'Chassi', upgrades: 'Uppgraderingar', paint: 'Lack', randomize: 'Slumpa',
+    quality: 'Grafikkvalitet', low: 'Låg', medium: 'Medel', high: 'Hög', ultra: 'Ultra', auto: 'Auto', volume: 'Volym', traffic: 'Trafikmängd',
+    pedestrians: 'Fotgängare', fines: 'Trafikböter', transmission: 'Växellåda', automatic: 'Automat', manual: 'Manuell', autoClutch: 'Automatisk koppling',
+    assists: 'Förarhjälp', language: 'Språk', camera: 'Kamera', fov: 'Synfält', units: 'Enheter', voice: 'Röstvägledning', on: 'På', off: 'Av',
+    cockpit: 'Förarplats', hood: 'Motorhuv', chase: 'Bakom', cinematic: 'Filmisk', loading: 'Laddar…', loadingWorld: 'Bygger Sverige…', loadingArea: 'Laddar omgivningen…',
+    lightsAuto: 'Ljus: automatiskt', lightsLow: 'Halvljus', lightsHigh: 'Helljus', lightsOff: 'Ljus av', wipersOff: 'Torkare av', wipersInt: 'Torkare intervall', wipersLow: 'Torkare normal', wipersHigh: 'Torkare snabb',
+    cruiseOn: 'Farthållare {v} km/h', cruiseOff: 'Farthållare av', hazard: 'Varningsblinkers', gpsSet: 'Rutt till {dest}', gpsCleared: 'Navigering avslutad',
+    restArea: 'Rastplats', petrolStation: 'Bensinstation', supermarket: 'Livsmedelsbutik', interact: 'Tryck {key}: {what}', outsideTemp: 'Ute',
+    slippery: 'Risk för halka', pause: 'Paus', timeSpeed: 'Tidshastighet', realtime: 'Realtid', apply: 'Verkställ', search: 'Sök plats…',
+    collision: 'Krock!', moose: 'Älg på vägen!', controlsText: 'Tangentbord, handkontroll och ratt',
+    tips: 'Tips: Håll till höger. Kör med halvljus även på dagen. Hastighetsgränsen står på de gula skyltarna.',
+    wheelSetup: 'Ratt & pedaler', bindSteer: 'Ratt', bindThrottle: 'Gaspedal', bindBrake: 'Broms', bindClutch: 'Koppling', bindUp: 'Växla upp', bindDown: 'Växla ner', bindPrompt: 'Rör kontrollen…',
+    newGame: 'Nytt spel', home: 'Hemma', score: 'Körprofil', fineList: 'Böter', noFines: 'Inga böter – snyggt!',
+  },
+  en: {
+    title: 'OPEN WORLD SWEDEN', subtitle: 'A Swedish driving simulator',
+    drive: 'Drive', continue: 'Continue', garage: 'Garage', settings: 'Settings', controls: 'Controls', help: 'Help', quit: 'Quit to menu',
+    start: 'Start', back: 'Back', resume: 'Resume driving', map: 'Map', world: 'Weather & time', reset: 'Reset car to road',
+    startLoc: 'Start location', destination: 'Destination', none: 'None (free roam)', vehicle: 'Vehicle', season: 'Season', time: 'Time', weather: 'Weather',
+    now: 'Now (real time)', spring: 'Spring', summer: 'Summer', autumn: 'Autumn', winter: 'Winter',
+    clear: 'Clear', cloudy: 'Cloudy', overcast: 'Overcast', rain: 'Rain', storm: 'Thunderstorm', snow: 'Snowfall', fog: 'Fog', dynamic: 'Changing',
+    morning: 'Morning', noon: 'Midday', evening: 'Evening', night: 'Night',
+    speed: 'km/h', gear: 'Gear', fuel: 'Fuel', battery: 'Battery', odo: 'Odometer',
+    pressIgnition: 'Press {key} to start the engine', engineStalled: 'The engine stalled', engineDead: 'The engine has died',
+    fuelEmpty: 'Out of fuel', parked: 'Parked', refuel: 'Refuel', charge: 'Charge', refueling: 'Refuelling…', refuelDone: 'Refuelling complete',
+    dealership: 'Car dealership', enterDealer: 'Enter the dealership', repair: 'Repair the car', repairDone: 'The car has been repaired',
+    fine: 'Fine', speeding: 'Speeding', redLight: 'Running a red light', fineText: '{what}: {amount}', licenseRevoked: 'Licence suspended – drive carefully!',
+    speedCamera: 'Speed camera', welcomeTo: 'Welcome to {place}',
+    turnLeft: 'Turn left', turnRight: 'Turn right', straight: 'Continue straight', keepLeft: 'Keep left', keepRight: 'Keep right',
+    exit: 'Take the exit', roundabout: 'At the roundabout, take exit {n}', arrive: 'You have arrived', recalc: 'Recalculating…', toward: 'towards', onto: 'onto',
+    in: 'In', meters: 'm', km: 'km', distanceLeft: 'left', eta: 'Arrival',
+    money: 'Wallet', paid: 'Paid', cost: 'Cost', buy: 'Buy', owned: 'Owned', select: 'Select', price: 'Price', color: 'Colour', wheels: 'Wheels', tires: 'Tyres',
+    plate: 'Number plate', tune: 'Engine tune', suspension: 'Suspension', upgrades: 'Upgrades', paint: 'Paint', randomize: 'Randomise',
+    quality: 'Graphics quality', low: 'Low', medium: 'Medium', high: 'High', ultra: 'Ultra', auto: 'Auto', volume: 'Volume', traffic: 'Traffic density',
+    pedestrians: 'Pedestrians', fines: 'Traffic fines', transmission: 'Transmission', automatic: 'Automatic', manual: 'Manual', autoClutch: 'Automatic clutch',
+    assists: 'Driving aids', language: 'Language', camera: 'Camera', fov: 'Field of view', units: 'Units', voice: 'Voice guidance', on: 'On', off: 'Off',
+    cockpit: 'Cockpit', hood: 'Hood', chase: 'Chase', cinematic: 'Cinematic', loading: 'Loading…', loadingWorld: 'Building Sweden…', loadingArea: 'Loading surroundings…',
+    lightsAuto: 'Lights: automatic', lightsLow: 'Dipped beam', lightsHigh: 'High beam', lightsOff: 'Lights off', wipersOff: 'Wipers off', wipersInt: 'Wipers intermittent', wipersLow: 'Wipers normal', wipersHigh: 'Wipers fast',
+    cruiseOn: 'Cruise control {v} km/h', cruiseOff: 'Cruise control off', hazard: 'Hazard lights', gpsSet: 'Route to {dest}', gpsCleared: 'Navigation ended',
+    restArea: 'Rest area', petrolStation: 'Petrol station', supermarket: 'Supermarket', interact: 'Press {key}: {what}', outsideTemp: 'Outside',
+    slippery: 'Risk of ice', pause: 'Paused', timeSpeed: 'Time speed', realtime: 'Real time', apply: 'Apply', search: 'Search place…',
+    collision: 'Crash!', moose: 'Moose on the road!', controlsText: 'Keyboard, gamepad and steering wheel',
+    tips: 'Tip: Keep right. Dipped headlights are mandatory, even in daylight. Speed limits are on the yellow signs.',
+    wheelSetup: 'Wheel & pedals', bindSteer: 'Steering', bindThrottle: 'Throttle', bindBrake: 'Brake', bindClutch: 'Clutch', bindUp: 'Shift up', bindDown: 'Shift down', bindPrompt: 'Move the control…',
+    newGame: 'New game', home: 'Home', score: 'Driver profile', fineList: 'Fines', noFines: 'No fines – well done!',
+  },
+};
+
+export function t(key, vars) {
+  const L = STR[settings.lang] || STR.en;
+  let s = L[key] ?? STR.en[key] ?? key;
+  if (vars) for (const k in vars) s = s.replace('{' + k + '}', vars[k]);
+  return s;
+}
+export function lang() { return settings.lang; }

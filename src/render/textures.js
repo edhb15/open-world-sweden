@@ -172,7 +172,9 @@ function paintWall(ctx, w, h, rnd, base = 210, amp = 18) {
     const v = base + (rnd() - 0.5) * amp;
     img.data[i * 4] = v; img.data[i * 4 + 1] = v; img.data[i * 4 + 2] = v; img.data[i * 4 + 3] = 255;
   }
-  ctx.putImageData(img, 0, 0);
+  // putImageData ignores the canvas transform, so apply the translation by hand
+  const m = ctx.getTransform();
+  ctx.putImageData(img, m.e, m.f);
 }
 function windowPane(ctx, x, y, w, h, frame = '#efece4', bars = true, glass = '#28343e') {
   ctx.fillStyle = frame;

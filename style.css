@@ -5,3 +5,35 @@ html, body { margin: 0; height: 100%; background: #0b0f14; overflow: hidden; fon
 .ld-title { font-size: 28px; letter-spacing: 6px; font-weight: 700; }
 .ld-bar { width: 280px; height: 4px; background: #223; border-radius: 2px; overflow: hidden; }
 #ld-fill { display: block; height: 100%; width: 0; background: #ffcd00; transition: width .2s; }
+/* ---------------- HUD ---------------- */
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; font-family: "Rajdhani", system-ui, sans-serif; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+#hud.hidden, .hidden { display: none !important; }
+#hud-road { position: absolute; top: 14px; left: 16px; display: flex; gap: 8px; align-items: center; font-size: 18px; font-weight: 600; }
+#hud-road .ref { padding: 1px 8px; border-radius: 3px; font-weight: 700; }
+#hud-road .ref.eroad { background: #0f7a3d; color: #fff; border: 2px solid #fff; }
+#hud-road .ref.nroad { background: #1d5bb8; color: #fff; border: 2px solid #fff; }
+#hud-road .ref.none { display: none; }
+#hud-road .place { opacity: .85; font-weight: 500; }
+#hud-limit { position: absolute; top: 52px; left: 16px; width: 54px; height: 54px; border-radius: 50%; background: #ffd200; border: 7px solid #d4161c; box-sizing: border-box; display: flex; align-items: center; justify-content: center; color: #111; font-weight: 800; font-size: 20px; text-shadow: none; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+#hud-msg { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; align-items: center; }
+#hud-msg .msg { background: rgba(10,16,24,.72); padding: 6px 16px; border-radius: 6px; font-size: 18px; transition: opacity .5s; }
+#hud-msg .msg.warn { background: rgba(160,24,20,.85); }
+#hud-msg .msg.good { background: rgba(20,110,60,.85); }
+#hud-msg .msg.out { opacity: 0; }
+#hud-prompt { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); background: rgba(10,16,24,.75); padding: 8px 18px; border-radius: 6px; font-size: 18px; }
+#hud-dash { position: absolute; right: 18px; bottom: 18px; width: 230px; background: rgba(8,12,18,.55); border-radius: 10px; padding: 10px 14px; backdrop-filter: blur(4px); }
+#hud-dash .speed { font-size: 46px; font-weight: 700; line-height: 1; }
+#hud-dash .speed small { font-size: 14px; margin-left: 6px; opacity: .7; }
+#hud-dash .gear { position: absolute; right: 14px; top: 10px; font-size: 30px; font-weight: 700; color: #ffcd00; }
+#hud-dash .rpm { height: 5px; background: rgba(255,255,255,.15); border-radius: 3px; margin: 8px 0 6px; overflow: hidden; }
+#hud-rpm { height: 100%; width: 0; background: linear-gradient(90deg, #6fd3ff, #ffffff); }
+#hud-rpm.red { background: #ff3b30; }
+#hud-dash .icons { display: flex; gap: 8px; font-size: 13px; font-weight: 700; opacity: .9; }
+#hud-dash .icons span { opacity: .18; }
+#hud-dash .icons span.on { opacity: 1; }
+#i-indl.on, #i-indr.on { color: #3cff6a; }
+#i-high.on { color: #5aa0ff; }
+#i-abs.on, #i-esc.on { color: #ffb000; }
+#hud-dash .row { display: flex; justify-content: space-between; font-size: 15px; margin-top: 6px; opacity: .9; }
+#hud-money { position: absolute; top: 14px; right: 18px; font-size: 18px; font-weight: 600; }
+#hud-fps { position: absolute; top: 40px; right: 18px; font-size: 13px; opacity: .8; }
