@@ -7,7 +7,7 @@ import { RNG, hash2i, clamp, lerp } from '../core/math.js';
 import { CHUNK } from '../world/terrain.js';
 import { forestDensity, speciesMix } from './landcover.js';
 import { envUniforms } from './terrainmesh.js';
-import { pointInPoly } from '../world/geo.js';
+import { pointInPoly, cityMask } from '../world/geo.js';
 
 export const vegUniforms = {
   uLeaf: { value: 1 },                                   // 0 = bare (winter), 1 = full
@@ -156,7 +156,7 @@ export function* vegetationChunkJob(world, cx, cz, lod, result) {
       const pick = hash2i(cx * 64 + i, cz * 64 + j, 47 + lod);
       // cheap early-out with forest density before terrain sampling
       const fd = forestDensity(x, z, null);
-      const sparse = 0.025;
+      const sparse = 0.025 * (1 - cityMask(x, z));
       if (pick > Math.max(fd * (lod === 2 ? 0.85 : 0.92), sparse)) continue;
       const h = ground(x, z);
       if (_s.road > 0.02) continue;

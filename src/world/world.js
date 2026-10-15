@@ -23,9 +23,14 @@ export async function buildWorld(progress = () => {}) {
   stamp('lanes');
   // drop lots that ended up on a road
   world.lots = world.lots.filter((l) => {
-    const clr = net.nearestRoadClearance(l.x, l.z);
-    const need = Math.hypot(l.w, l.d) / 2 * (l.kind === 'block' || l.kind === 'slab' ? 0.55 : 0.85) + (l.needsClear || 1);
-    return clr > need;
+    // every footprint corner (and the centre) must stay off the roads
+    const c = Math.cos(l.rot), s = Math.sin(l.rot);
+    const margin = l.needsClear ? Math.min(2, l.needsClear * 0.3) : 0.2;
+    for (const [a, b] of [[0, 0], [-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+      const x = l.x + (a * l.w / 2) * c - (b * l.d / 2) * s, z = l.z + (a * l.w / 2) * s + (b * l.d / 2) * c;
+      if (net.nearestRoadClearance(x, z) < margin) return false;
+    }
+    return true;
   });
   world.pois = world.pois.filter((p) => p.type === 'landmark' || p.type === 'rest' || net.nearestRoadClearance(p.x, p.z) > 6);
   stamp('lots');

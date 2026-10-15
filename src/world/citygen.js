@@ -66,8 +66,8 @@ export function generateCity(net, city, gateways, world) {
 
   // ---- edges
   const edges = [];
-  const addEdge = (a, b, axis) => {
-    const art = isArterial(a.i, a.j, axis);
+  const addEdge = (a, b, axis, forceBridge = false) => {
+    const art = isArterial(a.i, a.j, axis) || forceBridge;
     // water check along the edge
     let wetRun = 0, wet = 0;
     const L = Math.hypot(b.x - a.x, b.z - a.z);
@@ -86,11 +86,28 @@ export function generateCity(net, city, gateways, world) {
     if (!art && dmid > 0.55 && hash2i(a.i, a.j * 7 + axis, 91) < 0.1) return; // irregular outskirts
     edges.push({ a, b, axis, art, wet: wetRun > 0 });
   };
+  // nodes that were dropped because they were in water (not outside the town shape)
+  const wetGap = (i, j) => {
+    let u = i * sp, v = j * sp;
+    const [x, z] = toWorld(u, v);
+    return Math.hypot(u, v) < R * 1.05 && isWater(x, z);
+  };
   for (const gn of nodeGrid.values()) {
-    const r = nodeGrid.get(key(gn.i + 1, gn.j));
-    const u = nodeGrid.get(key(gn.i, gn.j + 1));
-    if (r) addEdge(gn, r, 0);
-    if (u) addEdge(gn, u, 1);
+    for (const axis of [0, 1]) {
+      const di = axis === 0 ? 1 : 0, dj = axis === 0 ? 0 : 1;
+      const nb = nodeGrid.get(key(gn.i + di, gn.j + dj));
+      if (nb) { addEdge(gn, nb, axis); continue; }
+      // bridge over water along arterials (and some streets in big cities)
+      const art = isArterial(gn.i, gn.j, axis);
+      if (!art && !(big && hash2i(gn.i * 5 + axis, gn.j, 33) < 0.35)) continue;
+      for (let k = 2; k <= 5; k++) {
+        const far = nodeGrid.get(key(gn.i + di * k, gn.j + dj * k));
+        let ok = true;
+        for (let q = 1; q < k; q++) if (!wetGap(gn.i + di * q, gn.j + dj * q) && !nodeGrid.has(key(gn.i + di * q, gn.j + dj * q))) { ok = false; break; }
+        if (!ok) break;
+        if (far) { addEdge(gn, far, axis, true); break; }
+      }
+    }
   }
   // keep largest connected component
   const adj = new Map();

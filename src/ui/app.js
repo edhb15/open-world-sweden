@@ -38,10 +38,13 @@ export class App {
     carCfg.model = spec.id;
     if (carCfg.trans == null) carCfg.trans = settings.trans === 'manual' && spec.gearbox.type !== 'ev' && spec.gearbox.type !== 'auto' ? 'manual' : spec.gearbox.type === 'manual' && settings.trans === 'manual' ? 'manual' : spec.gearbox.type === 'manual' ? 'manual' : 'auto';
     carCfg.autoClutch = settings.autoClutch; carCfg.abs = settings.abs; carCfg.tcs = settings.tcs; carCfg.esc = settings.esc;
-    const pos = game.startPosition(start);
+    let pos = game.startPosition(start);
+    const at = this.params.get('at');
+    if (at) { const [ax, az] = at.split(',').map((v) => +v * 1000); pos = { x: ax, z: -az, y: 0, yaw: 0 }; }
     progress(0.1, t('loadingArea'));
     await game.preloadAround(pos.x, pos.z, (n) => progress(clamp(1 - n / 120, 0.1, 0.99), t('loadingArea') + ' ' + n));
     game.spawnPlayer(carCfg, start);
+    if (at) game.resetToRoad([pos.x, 0, pos.z]);
     if (!this.hud) this.hud = game.addModule(new HUD(game));
     this.setupTestHooks();
     document.getElementById('loading').classList.add('hidden');

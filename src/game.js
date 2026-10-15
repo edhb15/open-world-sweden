@@ -261,9 +261,9 @@ export class Game {
     if (name !== this.placeName) { const prev = this.placeName; this.placeName = name; this.placeKind = kind; if (name && prev !== undefined) this.emit('place', name, kind); }
     this.placeKind = kind;
   }
-  resetToRoad() {
+  resetToRoad(target) {
     const P = this.player;
-    const p = P.phys.p;
+    const p = target || P.phys.p;
     // nearest road lane
     let best = null, bd = Infinity;
     const r0 = 300;
