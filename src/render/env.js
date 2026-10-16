@@ -36,6 +36,11 @@ export class Environment {
     this.envScene.add(this.envSky.mesh);
     this.envRT = null;
     this.envTimer = 0;
+    this.envCool = 0;
+    // the sky is rendered into a small cube map and prefiltered from that (cheap)
+    this.cubeRT = new THREE.WebGLCubeRenderTarget(64, { type: THREE.HalfFloatType, generateMipmaps: false });
+    this.cubeCam = new THREE.CubeCamera(0.1, 1000, this.cubeRT);
+    this.envScene.add(this.cubeCam);
     this.lastEnvSun = new THREE.Vector3(0, -2, 0);
     this.sunDir = new THREE.Vector3(0, 1, 0);
     this.moonDir = new THREE.Vector3(0, -1, 0);
@@ -116,10 +121,10 @@ export class Environment {
     this.sun.target.updateMatrixWorld();
     this.sun.castShadow = this.sun.intensity > 0.08 && this.shadowsEnabled !== false;
     // environment map refresh
-    this.envTimer -= dt;
-    if (this.envTimer <= 0 || this.lastEnvSun.distanceTo(this.sunDir) > 0.03) {
+    this.envTimer -= dt; this.envCool -= 1 / 60;
+    if ((this.envTimer <= 0 || this.lastEnvSun.distanceTo(this.sunDir) > 0.03) && this.envCool <= 0) {
       this.refreshEnv();
-      this.envTimer = 6;
+      this.envTimer = 15; this.envCool = 2;
     }
     envUniforms.uTime.value = this.time;
     envUniforms.uNight.value = this.night;
@@ -130,7 +135,8 @@ export class Environment {
     const U = this.envSky.uniforms, S = this.sky.uniforms;
     for (const k in S) { if (S[k].value && S[k].value.copy) U[k].value.copy(S[k].value); else U[k].value = S[k].value; }
     if (this.envRT) this.envRT.dispose();
-    this.envRT = this.pmrem.fromScene(this.envScene, 0, 0.1, 200);
+    this.cubeCam.update(this.renderer, this.envScene);
+    this.envRT = this.pmrem.fromCubemap(this.cubeRT.texture);
     this.scene.environment = this.envRT.texture;
     this.scene.environmentIntensity = lerp(0.12, 0.9, this.daylight) * (1 - this.weather.overcast * 0.3);
     this.lastEnvSun.copy(this.sunDir);

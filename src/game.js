@@ -73,7 +73,7 @@ export class Game {
     this.collision = new CollisionWorld();
     this.conditions = { wet: 0, snow: 0, snowGround: 0, ice: 0, frozen: 0, temp: 15 };
     const grp = (ch, st, name) => {
-      ch.group.add(st.group); st.group.updateMatrixWorld(true);
+      st.group.name = name; ch.group.add(st.group); st.group.updateMatrixWorld(true);
       if (st.colliders && (name !== 'trees' || st.lod === 0)) this.collision.add(name + ':' + ch.cx + ':' + ch.cz, st.colliders);
       if (name === 'buildings' && this.parked) this.parked.addSpots(ch, st.carSpots || []);
     };
@@ -89,7 +89,7 @@ export class Game {
       { name: 'trees', maxLod: 2, lodOf: (l) => Math.min(l, 2), job: (ch, lod, res) => vegetationChunkJob(world, ch.cx, ch.cz, lod, res), attach: (c, s) => grp(c, s, 'trees'), detach: (c, s) => ungrp(c, s, 'trees') },
     ];
     this.props = new Props(this);
-    this.layers.push({ name: 'props', maxLod: 1, lodOf: () => 0, job: (ch, lod, res) => this.props.job(ch, lod, res), attach: (c, s) => grp(c, s, 'props'), detach: (c, s) => ungrp(c, s, 'props') });
+    this.layers.push({ name: 'props', maxLod: 0, lodOf: () => 0, job: (ch, lod, res) => this.props.job(ch, lod, res), attach: (c, s) => grp(c, s, 'props'), detach: (c, s) => ungrp(c, s, 'props') });
     this.chunks = new ChunkManager({ scene: this.scene, world, terrain: this.terrain, layers: this.layers, ranges: this.quality.ranges });
     this.chunks.budget = this.quality.budget;
     this.input = new Input(settings);
@@ -176,8 +176,25 @@ export class Game {
       this.frame(dt);
       this.frameMs = lerp(this.frameMs, performance.now() - t0, 0.05);
       this.fps = lerp(this.fps, 1 / Math.max(dt, 1e-3), 0.05);
+      this.adaptResolution(dt);
     };
     requestAnimationFrame(loop);
+  }
+  /* 'auto' quality: scale the render resolution to keep the frame rate up */
+  adaptResolution(dt) {
+    if (settings.quality !== 'auto' || this.paused) return;
+    this.resT = (this.resT || 0) + dt;
+    this.resFps = (this.resFps || 0) + 1;
+    if (this.resT < 2) return;
+    const fps = this.resFps / this.resT;
+    this.resT = 0; this.resFps = 0;
+    const base = this.basePR || (this.basePR = this.renderer.getPixelRatio());
+    let pr = this.renderer.getPixelRatio();
+    if (fps < 42 && pr > base * 0.55) pr = Math.max(base * 0.55, pr - 0.1);
+    else if (fps > 57 && pr < base) pr = Math.min(base, pr + 0.05);
+    else return;
+    this.renderer.setPixelRatio(pr);
+    this.renderer.setSize(innerWidth, innerHeight);
   }
   frame(dt) {
     const input = this.input;

@@ -107,8 +107,9 @@ function regroup(geo, upThreshold = 0.8) {
   return out;
 }
 
-export function carGeometry(spec) {
-  if (geoCache.has(spec.id)) return geoCache.get(spec.id);
+export function carGeometry(spec, lite = false) {
+  const ck = spec.id + (lite ? ':lite' : '');
+  if (geoCache.has(ck)) return geoCache.get(ck);
   const B = spec.body;
   const P = profiles(spec);
   const overF = B.overF ?? (B.L - B.wb) * (B.shape === 'bus' ? 0.25 : B.shape === 'truck' ? 0.22 : B.shape === 'van' ? 0.45 : 0.53);
@@ -125,12 +126,12 @@ export function carGeometry(spec) {
   PL.belt = Math.max(PL.belt, PL.hood);
   PL.deck = Math.max(PL.deck, archTop(arches[1]) + 0.05);
   const lowerSh = lowerShape(spec, P, arches);
-  const lower = new THREE.ExtrudeGeometry(lowerSh, { depth: W - bev * 2, bevelEnabled: true, bevelSize: bev, bevelThickness: bev, bevelSegments: 3, curveSegments: 10 });
+  const lower = new THREE.ExtrudeGeometry(lowerSh, { depth: W - bev * 2, bevelEnabled: true, bevelSize: bev, bevelThickness: bev, bevelSegments: lite ? 1 : 3, curveSegments: lite ? 4 : 10 });
   lower.translate(0, 0, -(W - bev * 2) / 2);
   const tumble = B.shape === 'bus' || B.shape === 'van' || B.shape === 'truck' ? 0.98 : 0.84;
   const gw = W * tumble;
   const gb = 0.05;
-  const green = new THREE.ExtrudeGeometry(greenShape(spec, P), { depth: gw - gb * 2, bevelEnabled: true, bevelSize: gb, bevelThickness: gb, bevelSegments: 2, curveSegments: 8 });
+  const green = new THREE.ExtrudeGeometry(greenShape(spec, P), { depth: gw - gb * 2, bevelEnabled: true, bevelSize: gb, bevelThickness: gb, bevelSegments: lite ? 1 : 2, curveSegments: lite ? 4 : 8 });
   green.translate(0, 0, -(gw - gb * 2) / 2);
   // shape x = 0 at the front -> local z: front at negative z
   const xCG = xF + B.wb * (1 - spec.weightF);
@@ -153,7 +154,7 @@ export function carGeometry(spec) {
   cabin.translate(cxm, gb2.min.y, czm);
   cabin.clearGroups();
   const res = { lower, green: greenG, cabin, P, xF, xR, xCG, overF, bb: lower.boundingBox, bev, lowerShapeDbg: lowerSh };
-  geoCache.set(spec.id, res);
+  geoCache.set(ck, res);
   return res;
 }
 
@@ -190,7 +191,7 @@ export class CarMesh {
     this.group = new THREE.Group();
     this.body = new THREE.Group();
     this.group.add(this.body);
-    const G = carGeometry(spec);
+    const G = carGeometry(spec, !!opts.lite);
     this.G = G;
     const B = spec.body;
     const paint = paintMaterial(color, opts.metallic !== false && spec.cls !== 'bus' && spec.cls !== 'truck');
@@ -264,7 +265,7 @@ export class CarMesh {
     // wheels
     this.wheels = [];
     const wheelStyle = opts.wheels || (spec.year < 1970 ? 'steel' : spec.year < 1995 ? 'steel' : 'alloy5');
-    const wg = wheelGeometry(spec.tire.r, spec.tire.w, wheelStyle);
+    const wg = wheelGeometry(spec.tire.r, spec.tire.w, wheelStyle, !!opts.lite);
     const sides = [[true, true], [true, false], [false, true], [false, false]];
     for (let i = 0; i < 4; i++) {
       const [front, left] = sides[i];
@@ -314,18 +315,21 @@ export class CarMesh {
 }
 
 const wheelCache = new Map();
-function wheelGeometry(r, w, style) {
-  const k = r + ':' + w + ':' + style;
+function wheelGeometry(r, w, style, lite = false) {
+  const k = r + ':' + w + ':' + style + (lite ? ':lite' : '');
   if (wheelCache.has(k)) return wheelCache.get(k);
-  const tireG = new THREE.CylinderGeometry(r, r, w, 24, 1, false);
+  const tireG = new THREE.CylinderGeometry(r, r, w, lite ? 12 : 24, 1, false);
   tireG.rotateZ(Math.PI / 2);
-  // tyre sidewall bulge via a torus overlay
-  const tor = new THREE.TorusGeometry(r - w * 0.28, w * 0.3, 8, 24);
-  tor.rotateY(Math.PI / 2);
-  const tg = mergeGeos([tireG, tor]);
+  // tyre sidewall bulge via a torus overlay (skipped for distant instanced cars)
+  let tg = tireG;
+  if (!lite) {
+    const tor = new THREE.TorusGeometry(r - w * 0.28, w * 0.3, 8, 24);
+    tor.rotateY(Math.PI / 2);
+    tg = mergeGeos([tireG, tor]);
+  }
   const rr = r * 0.66;
   const parts = [];
-  const disc = new THREE.CylinderGeometry(rr, rr, w * 0.5, 20);
+  const disc = new THREE.CylinderGeometry(rr, rr, w * 0.5, lite ? 10 : 20);
   disc.rotateZ(Math.PI / 2); disc.translate(w * 0.06, 0, 0);
   parts.push(disc);
   if (style !== 'steel') {
@@ -382,7 +386,7 @@ export function randomPlate(seed) {
 const partsCache = new Map();
 export function instancedParts(spec) {
   if (partsCache.has(spec.id)) return partsCache.get(spec.id);
-  const mesh = new CarMesh(spec, { color: 0xffffff, plate: 'ABC 123', metallic: false });
+  const mesh = new CarMesh(spec, { color: 0xffffff, plate: 'ABC 123', metallic: false, lite: true });
   mesh.group.updateMatrixWorld(true);
   const body = [], dark = [], lights = [];
   const tmpM = new THREE.Matrix4();

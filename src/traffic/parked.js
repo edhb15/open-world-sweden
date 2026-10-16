@@ -11,7 +11,7 @@ import { CHUNK } from '../world/terrain.js';
 const STREET_MODELS = ['v7', '245', 'kompis', 'xc', 'lyra', '900', 'van', 'kompis', 'v7', 'xc'];
 const SHOW_MODELS = ['v7', 'lyra', 'xc', 'kronstad', 'kompis'];
 const COLORS = [0xe8e8e8, 0x1a1a1a, 0x8a9aa8, 0x2c3e50, 0x6d1f23, 0xd9d9d9, 0x3a4a5a, 0x4a5a3a, 0xb3121b, 0x1d4f91, 0xc0c4c8, 0x5a4636, 0xf2f2f2, 0x26303a];
-const NEAR = 380;
+const NEAR = 260;
 
 export class ParkedCars {
   constructor(game) {

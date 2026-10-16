@@ -11,6 +11,7 @@ import { envUniforms } from './terrainmesh.js';
 import { buildingEmissive } from './buildings.js';
 
 const M = {};
+const LAMP_OFF = new THREE.Color(0.03, 0.03, 0.03), LAMP_RED = new THREE.Color(5, 0.25, 0.12), LAMP_AMBER = new THREE.Color(5, 2.2, 0.05), LAMP_GREEN = new THREE.Color(0.15, 5, 1.4);
 function mats() {
   if (M.pole) return M;
   M.pole = new THREE.MeshStandardMaterial({ color: 0x8c9196, roughness: 0.5, metalness: 0.6 });
@@ -29,6 +30,7 @@ function mats() {
   M.green = new THREE.MeshStandardMaterial({ color: 0x20ff70, emissive: 0x20ff70, emissiveIntensity: 4 });
   M.housing = new THREE.MeshStandardMaterial({ color: 0x23272b, roughness: 0.6 });
   M.glass = new THREE.MeshStandardMaterial({ color: 0x9fb7c4, roughness: 0.1, metalness: 0.1, transparent: true, opacity: 0.35 });
+  M.lens = new THREE.MeshBasicMaterial({ color: 0xffffff });
   M.signs = new Map();
   return M;
 }
@@ -422,20 +424,29 @@ export class Props {
       m.castShadow = kind === 'rail';
       group.add(m);
     }
-    // traffic light heads (individual so their lamps can change)
-    for (const h of signalHeads) {
-      const g = new THREE.Group();
-      g.position.set(h.x - x0, h.y, h.z - z0);
-      g.rotation.y = h.yaw;
-      const box = new THREE.Mesh(G.box, M.housing); box.scale.set(0.32, 0.95, 0.22); g.add(box);
-      const lamps = [];
-      for (let q = 0; q < 3; q++) {
-        const l = new THREE.Mesh(G.lens, M.lightOff);
-        l.position.set(0, 0.3 - q * 0.3, 0.115);
-        g.add(l); lamps.push(l);
-      }
-      h.lamps = lamps;
-      group.add(g);
+    // traffic light heads: one instanced housing + one instanced lens set per chunk;
+    // lamp states are written as instance colours every frame
+    if (signalHeads.length) {
+      const n = signalHeads.length;
+      const housing = new THREE.InstancedMesh(G.box, M.housing, n);
+      const lenses = new THREE.InstancedMesh(G.lens, M.lens, n * 3);
+      const mH = new THREE.Matrix4(), mL = new THREE.Matrix4(), q = new THREE.Quaternion(), v = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
+      signalHeads.forEach((h, k) => {
+        q.setFromAxisAngle(up, h.yaw);
+        mH.compose(v.set(h.x - x0, h.y, h.z - z0), q, new THREE.Vector3(0.32, 0.95, 0.22));
+        housing.setMatrixAt(k, mH);
+        for (let j = 0; j < 3; j++) {
+          const off = new THREE.Vector3(0, 0.3 - j * 0.3, 0.115).applyQuaternion(q);
+          mL.compose(v.set(h.x - x0 + off.x, h.y + off.y, h.z - z0 + off.z), q, new THREE.Vector3(1, 1, 1));
+          lenses.setMatrixAt(k * 3 + j, mL);
+          lenses.setColorAt(k * 3 + j, LAMP_OFF);
+        }
+        h.lampIdx = k * 3;
+      });
+      housing.castShadow = true;
+      lenses.userData.heads = signalHeads;
+      group.add(housing, lenses);
+      res.lenses = lenses;
     }
     group.traverse((o) => { o.matrixAutoUpdate = false; o.updateMatrix(); });
     res.group = group;
@@ -454,10 +465,12 @@ export class Props {
       if (!st || !st.signalHeads) continue;
       for (const h of st.signalHeads) {
         const s = h.node.signal.state(h.group);
-        h.lamps[0].material = s === 'red' || s === 'redamber' ? M.red : M.lightOff;
-        h.lamps[1].material = s === 'amber' || s === 'redamber' ? M.amber : M.lightOff;
-        h.lamps[2].material = s === 'green' ? M.green : M.lightOff;
+        const L = st.lenses, i = h.lampIdx;
+        L.setColorAt(i, s === 'red' || s === 'redamber' ? LAMP_RED : LAMP_OFF);
+        L.setColorAt(i + 1, s === 'amber' || s === 'redamber' ? LAMP_AMBER : LAMP_OFF);
+        L.setColorAt(i + 2, s === 'green' ? LAMP_GREEN : LAMP_OFF);
       }
+      if (st.lenses) st.lenses.instanceColor.needsUpdate = true;
     }
   }
 }
