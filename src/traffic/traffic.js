@@ -384,6 +384,11 @@ export class Traffic {
     const ex = c.next;
     if (!ex) return toEnd - 1;
     const conn = ex.to;
+    // animals on the road ahead
+    if (this.wildlife && this.wildlife.list.length) {
+      const w = this.wildlife.blockingAhead(c);
+      if (w != null) return Math.max(0, w);
+    }
     // pedestrians on the crossing just ahead
     if (this.peds && p.kind === 'lane' && toEnd < 30) {
       const cw = this.peds.blockingCrossing(c, p, toEnd);

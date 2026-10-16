@@ -18,6 +18,9 @@ import { Props } from './render/props.js';
 import { Traffic } from './traffic/traffic.js';
 import { Weather } from './world/weather.js';
 import { Audio } from './audio/audio.js';
+import { Pedestrians } from './traffic/peds.js';
+import { Wildlife } from './traffic/wildlife.js';
+import { ParkedCars } from './traffic/parked.js';
 import { CollisionWorld } from './vehicle/collide.js';
 import { PlayerCar } from './vehicle/playercar.js';
 import { CameraRig } from './vehicle/cameras.js';
@@ -95,6 +98,9 @@ export class Game {
     this.modules = []; // things with update(dt) hooks (traffic, audio, weather, hud...)
     this.weather = this.addModule(new Weather(this));
     this.traffic = this.addModule(new Traffic(this));
+    this.peds = this.addModule(new Pedestrians(this));
+    this.wildlife = this.addModule(new Wildlife(this));
+    this.parkedCars = this.addModule(new ParkedCars(this));
     this.audio = this.addModule(new Audio(this));
     this.season = 'summer';
     this.placeT = 0;

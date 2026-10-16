@@ -48,26 +48,28 @@ function mats() {
 }
 
 class ModelSet {
-  constructor(scene, spec, parts) {
+  constructor(scene, spec, parts, cap = CAP) {
     mats();
+    const CAP_ = cap;
+    this.cap = cap;
     this.spec = spec;
     this.parts = parts || instancedParts(spec);
     const P = this.parts;
-    this.body = new THREE.InstancedMesh(P.body, MAT.body, CAP);
-    this.dark = new THREE.InstancedMesh(P.dark, MAT.dark, CAP);
-    this.wheel = new THREE.InstancedMesh(P.wheel, MAT.wheel, CAP * 4);
+    this.body = new THREE.InstancedMesh(P.body, MAT.body, CAP_);
+    this.dark = new THREE.InstancedMesh(P.dark, MAT.dark, CAP_);
+    this.wheel = new THREE.InstancedMesh(P.wheel, MAT.wheel, CAP_ * 4);
     const lg = P.lights.clone();
-    this.stateAttr = new THREE.InstancedBufferAttribute(new Float32Array(CAP * 4), 4);
-    this.stateAttr2 = new THREE.InstancedBufferAttribute(new Float32Array(CAP * 2), 2);
+    this.stateAttr = new THREE.InstancedBufferAttribute(new Float32Array(CAP_ * 4), 4);
+    this.stateAttr2 = new THREE.InstancedBufferAttribute(new Float32Array(CAP_ * 2), 2);
     lg.setAttribute('aState', this.stateAttr);
     lg.setAttribute('aState2', this.stateAttr2);
-    this.light = new THREE.InstancedMesh(lg, MAT.light, CAP);
+    this.light = new THREE.InstancedMesh(lg, MAT.light, CAP_);
     for (const m of [this.body, this.dark, this.wheel, this.light]) {
       m.count = 0; m.frustumCulled = false; m.castShadow = m !== this.light; m.receiveShadow = m === this.body;
       scene.add(m);
     }
-    this.body.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(CAP * 3), 3);
-    this.slots = new Array(CAP).fill(null);
+    this.body.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(CAP_ * 3), 3);
+    this.slots = new Array(CAP_).fill(null);
     this.used = 0;
   }
   alloc(car) {
@@ -82,13 +84,14 @@ class ModelSet {
 const _M = new THREE.Matrix4(), _Q = new THREE.Quaternion(), _P = new THREE.Vector3(), _S = new THREE.Vector3(1, 1, 1), _E = new THREE.Euler(), _Wq = new THREE.Quaternion(), _Wm = new THREE.Matrix4(), _C = new THREE.Color();
 
 export class Fleet {
-  constructor(scene) {
+  constructor(scene, cap = CAP) {
     this.scene = scene;
+    this.cap = cap;
     this.sets = new Map();
   }
   set(spec, parts) {
     let s = this.sets.get(spec.id);
-    if (!s) { s = new ModelSet(this.scene, spec, parts); this.sets.set(spec.id, s); }
+    if (!s) { s = new ModelSet(this.scene, spec, parts, this.cap); this.sets.set(spec.id, s); }
     return s;
   }
   add(car) {
@@ -108,7 +111,7 @@ export class Fleet {
     // compact: write each set's cars in slot order
     for (const s of this.sets.values()) {
       let k = 0;
-      for (let i = 0; i < CAP; i++) {
+      for (let i = 0; i < s.cap; i++) {
         const c = s.slots[i];
         if (!c) continue;
         _E.set(c.pitch || 0, c.yaw, c.roll || 0, 'YXZ');

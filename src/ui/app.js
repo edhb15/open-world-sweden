@@ -81,6 +81,8 @@ export class App {
     if (at && !this.sessionActive) game.resetToRoad([pos.x, 0, pos.z]);
     game.homeStart = start.id;
     if (game.traffic && game.traffic.clear) game.traffic.clear();
+    if (game.peds) game.peds.clear();
+    if (game.wildlife) game.wildlife.clear();
     if (!this.hud) this.hud = game.addModule(new HUD(game));
     this.current = { start: start.id, car: carCfg.model };
     this.sessionActive = true;
