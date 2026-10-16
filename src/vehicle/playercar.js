@@ -139,6 +139,7 @@ export class PlayerCar {
   update(dt, input) {
     const P = this.phys;
     const game = this.game;
+    this.impacts.length = 0; // per-frame list, read by audio/HUD after update
     // cruise control (adaptive: keeps distance with the leader if traffic tells us)
     let inp = input;
     if (this.cruise != null) {
