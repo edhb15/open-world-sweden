@@ -19,6 +19,7 @@ import { Traffic } from './traffic/traffic.js';
 import { Weather } from './world/weather.js';
 import { Audio } from './audio/audio.js';
 import { Pedestrians } from './traffic/peds.js';
+import { updateSeasonal } from './render/landmarks.js';
 import { Wildlife } from './traffic/wildlife.js';
 import { ParkedCars } from './traffic/parked.js';
 import { CollisionWorld } from './vehicle/collide.js';
@@ -229,6 +230,7 @@ export class Game {
     for (const sg of this.world.signals) sg.update(simDt);
     const cp = this.camera.position;
     this.env.update(simDt, cp);
+    updateSeasonal(this.env.day);
     buildingEmissive.value = clamp(this.env.night * 1.4 + (1 - this.env.daylight) * 0.6, 0, 1.4);
     this.water.update(cp, dt, this.env.time);
     this.chunks.update(cp);

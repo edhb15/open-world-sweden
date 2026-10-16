@@ -3,6 +3,7 @@
    generated per chunk and merged by material.
    ===================================================================== */
 import * as THREE from 'three';
+import { buildLandmark, seasonal, seasonState } from './landmarks.js';
 import { RNG, hashStr, lerp, clamp } from '../core/math.js';
 import { CHUNK } from '../world/terrain.js';
 import { facadeTexture, facadeLightTexture, roofTexture, textTexture, roundRect, concreteTexture, asphaltTexture } from './textures.js';
@@ -369,6 +370,7 @@ export function* buildingChunkJob(world, cx, cz, lod, result) {
   for (const p of pois) {
     if (p.type === 'petrol') petrolStation(B, p, ground, x0, z0, colliders);
     if (p.type === 'rest') restArea(B, p, ground, x0, z0, colliders);
+    if (p.type === 'landmark') buildLandmark(B, p, ground, x0, z0, colliders, world.net.nearestRoadClearance(p.x, p.z));
   }
   yield;
   const group = new THREE.Group();
@@ -380,6 +382,7 @@ export function* buildingChunkJob(world, cx, cz, lod, result) {
     m.castShadow = lod === 0 && k !== 'lot' && k !== 'paint' && k !== 'glow';
     m.receiveShadow = true;
     m.matrixAutoUpdate = false;
+    if (k.startsWith('goat_')) { m.visible = seasonState.xmas; seasonal.add(m); }
     group.add(m);
   }
   result.group = group;
