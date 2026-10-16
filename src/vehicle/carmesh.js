@@ -117,7 +117,15 @@ export function carGeometry(spec) {
   const W = B.W;
   const bev = Math.min(0.09, W * 0.05);
   const arches = [{ x: xF, y: r, r: r + bev }, { x: xR, y: r, r: r + bev }];
-  const lower = new THREE.ExtrudeGeometry(lowerShape(spec, P, arches), { depth: W - bev * 2, bevelEnabled: true, bevelSize: bev, bevelThickness: bev, bevelSegments: 3, curveSegments: 10 });
+  // keep the wheel arches below the hood / deck line, otherwise the side
+  // profile self-intersects and its triangulation drops whole panels
+  const archTop = (a) => a.y + a.r + 0.06;
+  const PL = P.lower;
+  PL.hood = Math.max(PL.hood, archTop(arches[0]) + 0.05);
+  PL.belt = Math.max(PL.belt, PL.hood);
+  PL.deck = Math.max(PL.deck, archTop(arches[1]) + 0.05);
+  const lowerSh = lowerShape(spec, P, arches);
+  const lower = new THREE.ExtrudeGeometry(lowerSh, { depth: W - bev * 2, bevelEnabled: true, bevelSize: bev, bevelThickness: bev, bevelSegments: 3, curveSegments: 10 });
   lower.translate(0, 0, -(W - bev * 2) / 2);
   const tumble = B.shape === 'bus' || B.shape === 'van' || B.shape === 'truck' ? 0.98 : 0.84;
   const gw = W * tumble;
@@ -144,7 +152,7 @@ export function carGeometry(spec) {
   cabin.scale(0.93, 0.93, 0.95);
   cabin.translate(cxm, gb2.min.y, czm);
   cabin.clearGroups();
-  const res = { lower, green: greenG, cabin, P, xF, xR, xCG, overF, bb: lower.boundingBox, bev };
+  const res = { lower, green: greenG, cabin, P, xF, xR, xCG, overF, bb: lower.boundingBox, bev, lowerShapeDbg: lowerSh };
   geoCache.set(spec.id, res);
   return res;
 }

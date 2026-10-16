@@ -189,14 +189,14 @@ export class Game {
     if (this.env.clock < 0) this.env.clock += 24;
     const P = this.player;
     if (P) {
-      this.handleActions(A, S);
-      const inp = {
+      if (!this.inMenu) this.handleActions(A, S);
+      const inp = this.inMenu ? { throttle: 0, brake: 0, steer: 0, handbrake: 1, clutch: 0 } : {
         throttle: S.throttle, brake: S.brake, steer: S.steer, handbrake: S.handbrake, clutch: S.clutch,
         ignition: A.ignition, shiftUp: A.shiftUp, shiftDown: A.shiftDown, select: A.park ? 'P' : A.reverse ? 'R' : A.neutral ? 'N' : A.drive ? 'D' : null,
         steerAssist: settings.steerAssist && S.steerAssist, directSteer: S.directSteer, arcadePedals: !S.directSteer && settings.trans !== 'manual-sim',
       };
       if (this.inputOverride) Object.assign(inp, this.inputOverride(dt, this));
-      P.horn = S.horn;
+      P.horn = S.horn && !this.inMenu;
       P.update(dt, inp);
       this.rig.lookBack = S.lookBack;
       if (S.lookKey) { this.rig.lookHeld = true; this.rig.look.yaw = clamp(this.rig.look.yaw + -S.lookKey * dt * 3, -1.6, 1.6); }

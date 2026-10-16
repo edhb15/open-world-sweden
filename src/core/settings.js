@@ -22,7 +22,7 @@ export const DEFAULT_SETTINGS = {
 };
 
 export const DEFAULT_SAVE = {
-  money: 8000,
+  money: 60000,
   car: { model: 'v7', color: null, plate: null, wheels: null, tires: 'summer', tune: 'stock', susp: 'comfort' },
   owned: ['v7', '245', 'kompis'],
   odo: 0,

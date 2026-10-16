@@ -116,6 +116,7 @@ export class Input {
     const T = this.touch;
     if (T.active) {
       steer = T.steer; thr = Math.max(thr, T.throttle); brk = Math.max(brk, T.brake); hb = Math.max(hb, T.handbrake);
+      if (T.horn) horn = true;
       for (const b of T.buttons) A[b] = true;
       T.buttons.clear();
       analog = true;

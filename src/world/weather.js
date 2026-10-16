@@ -121,6 +121,7 @@ export class Weather {
   // mode: 'auto' | preset key
   set(mode, day) {
     const env = this.game.env;
+    if (!mode || mode === 'dynamic' || mode === 'now') mode = 'auto';
     this.mode = mode;
     const lat = env.lat;
     if (mode === 'auto') {

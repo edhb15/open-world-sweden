@@ -50,8 +50,16 @@ export class HUD {
     setTimeout(() => d.remove(), dur * 1000 + 600);
     while (box.children.length > 4) box.firstChild.remove();
   }
-  setPrompt(text) {
+  /* prompts have an owner so gameplay prompts are not overwritten by the HUD's own */
+  setPrompt(text, owner = 'hud') {
     const el = this.$('hud-prompt');
+    if (!text) {
+      if (this.promptOwner && this.promptOwner !== owner) return;
+      this.promptOwner = null;
+    } else {
+      if (this.promptOwner && this.promptOwner !== owner && owner === 'hud') return;
+      this.promptOwner = owner;
+    }
     if (text === this.prompt) return;
     this.prompt = text;
     if (!text) el.classList.add('hidden'); else { el.textContent = text; el.classList.remove('hidden'); }
@@ -59,7 +67,7 @@ export class HUD {
   update(dt, game) {
     const P = game.player;
     if (!P) return;
-    this.el.classList.toggle('hidden', !settings.hud);
+    this.el.classList.toggle('hidden', !settings.hud || !!game.inMenu);
     this.timer -= dt;
     const ph = P.phys;
     const kmh = Math.abs(ph.fwdSpeed) * 3.6;
@@ -84,6 +92,7 @@ export class HUD {
       const c = game.env.clock;
       this.$('hud-clock').textContent = `${String(Math.floor(c)).padStart(2, '0')}:${String(Math.floor((c % 1) * 60)).padStart(2, '0')}`;
       this.$('hud-money').textContent = formatKr(save.money);
+      this.$('hud-money').classList.toggle('neg', save.money < 0);
       const ri = P.roadInfo;
       const road = this.$('hud-road');
       if (ri && ri.road) {
@@ -98,9 +107,8 @@ export class HUD {
       fps.classList.toggle('hidden', !settings.showFps);
       if (settings.showFps) fps.textContent = `${game.fps.toFixed(0)} fps · ${game.frameMs.toFixed(1)} ms · ${game.renderer.info.render.calls} dc · ${(game.renderer.info.render.triangles / 1000).toFixed(0)}k tri`;
     }
-    if (!ph.running && ph.starter <= 0 && !ph.ev) this.setPrompt(t('pressIgnition', { key: 'I' }));
-    else if (!ph.running && ph.ev) this.setPrompt(t('pressIgnition', { key: 'I' }));
-    else if (this.prompt && this.prompt.startsWith(t('pressIgnition', { key: 'I' }).slice(0, 6))) this.setPrompt(null);
+    if (!ph.running && !(ph.starter > 0) && !game.inMenu) this.setPrompt(t('pressIgnition', { key: 'I' }));
+    else if (this.promptOwner === 'hud') this.setPrompt(null);
     for (const e of P.events || []) {
       if (e === 'stall') this.flash(t('engineStalled'), 2.5, 'warn');
       if (e === 'dead') this.flash(t('engineDead'), 4, 'warn');
