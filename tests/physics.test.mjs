@@ -130,6 +130,19 @@ check('Stadsbuss governed top speed', vmax('bus'), 82, 92, 'km/h');
   for (let i = 0; i < 240 * 2; i++) c.step(DT, { throttle: 0, brake: 0, clutch: Math.max(0, 1 - i / 60) }, env);
   check('Kompis stalls when dumping clutch (1=stalled)', c.running ? 0 : 1, 1, 1, '');
 }
+// 7b. starting with the ignition key (starter, not startEngineNow) must not stall a manual,
+//     and with the auto clutch it keeps running through a launch and an emergency stop
+for (const id of ['245', 'kompis']) {
+  const c = new CarPhysics(VEHICLE[id], { trans: 'manual', autoClutch: true });
+  c.reset(0, 0, 0, 0);
+  const env = flat();
+  let stalls = 0;
+  const step = (inp) => { c.step(DT, inp, env); for (const e of c.events) if (e === 'stall') stalls++; };
+  for (let i = 0; i < 240 * 3; i++) step({ throttle: 0, brake: 1, ignition: i === 0, shiftUp: i === 500 });
+  for (let i = 0; i < 240 * 6; i++) step({ throttle: 1, brake: 0, shiftUp: c.rpm > 4000 && c.shiftT <= 0 && c.gear < 3 });
+  for (let i = 0; i < 240 * 5; i++) step({ throttle: 0, brake: 1 });
+  check(`${id} ignition start, launch & hard stop: stalls`, stalls, 0, 0, '');
+}
 // 8. fuel consumption at steady 90 km/h (L/100km)
 {
   const c = mk('v7');

@@ -308,7 +308,12 @@ export class CarPhysics {
       this.starter -= dt;
       this.we = Math.max(this.we, Math.min(this.we + 900 * dt, 260 * Math.PI / 30));
       if (this.starter <= 0) {
-        if ((this.fuel > 0.05 || this.ev) && !this.flooded && this.damage.engine < 1) { this.running = true; this.stalled = false; this.events.push('start'); }
+        if ((this.fuel > 0.05 || this.ev) && !this.flooded && this.damage.engine < 1) {
+          // the engine catches and flares above idle; the idle controller then settles it
+          this.running = true; this.stalled = false; this.events.push('start');
+          this.we = Math.max(this.we, E.idle * 1.25 * Math.PI / 30);
+          this.stallGrace = 1.0;
+        }
         else this.events.push('nostart');
       }
     }
@@ -555,7 +560,10 @@ export class CarPhysics {
     if (this.clutchLocked && !this.ev) this.we = Gr * this.drivenSpeedNew(drivenW);
     if (!this.ev) {
       this.we = Math.max(this.we, 0);
-      if (this.running && this.we * 30 / Math.PI < 320 && !(this.starter > 0) && !this.autoMode) {
+      if (this.stallGrace > 0) this.stallGrace -= dt;
+      // a stall needs a load: the clutch must be (mostly) engaged with a gear selected
+      const loaded = (mode === 'clutch' || mode === 'locked') && this.clutchEng > 0.25;
+      if (this.running && this.we * 30 / Math.PI < 320 && !(this.starter > 0) && !this.autoMode && loaded && !(this.stallGrace > 0)) {
         this.running = false; this.stalled = true; this.events.push('stall');
       }
       if (!this.running && this.starter <= 0) this.we = Math.max(0, this.we - 60 * dt * (this.clutchLocked ? 0 : 1));
@@ -690,7 +698,7 @@ export class CarPhysics {
     this.events.push('crank');
   }
   startEngineNow() {
-    this.running = true; this.stalled = false; this.starter = 0;
+    this.running = true; this.stalled = false; this.starter = 0; this.stallGrace = 1.0;
     if (!this.ev) this.we = this.spec.engine.idle * Math.PI / 30;
   }
   shift(dir) {
