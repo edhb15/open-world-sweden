@@ -1,0 +1,11 @@
+{
+  "name": "open-world-sweden",
+  "version": "0.9.0",
+  "private": true,
+  "description": "Open-world Swedish driving simulator for the browser (three.js, no build step).",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "test": "node tests/physics.test.mjs && node tests/world.test.mjs && node tests/route.test.mjs"
+  }
+}

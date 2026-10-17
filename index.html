@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Open World Sweden</title>
+  <meta name="theme-color" content="#006aa7" />
+  <meta name="description" content="Open World Sweden – en svensk körsimulator i webbläsaren." />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+    { "imports": { "three": "./lib/three.module.min.js", "three/addons/": "./lib/addons/" } }
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="loading"><div class="ld-title">OPEN WORLD SWEDEN</div><div id="ld-text">Laddar…</div><div class="ld-bar"><span id="ld-fill"></span></div></div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
