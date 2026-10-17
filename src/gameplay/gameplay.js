@@ -184,6 +184,7 @@ export class Gameplay {
       const cost = 1500;
       ph.flooded = false;
       ph.damage.engine = Math.min(ph.damage.engine, 0.5);
+      ph.damage.front = Math.min(ph.damage.front, 0.4); // straightened enough to drive
       ph.fuel = Math.max(ph.fuel, Math.min(P.spec.fuel.tank, ph.ev ? P.spec.fuel.tank * 0.15 : 8));
       this.pay(cost, 'tow');
       this.msg(t('towed', { cost: formatKr(cost) }), 4.5, 'good');

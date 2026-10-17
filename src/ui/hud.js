@@ -116,6 +116,7 @@ export class HUD {
     for (const e of P.events || []) {
       if (e === 'stall') this.flash(ph.opts.autoClutch ? t('engineStalled') : t('stallHint'), 3, 'warn');
       if (e === 'needclutch') this.flash(t('needClutch'), 3.5, 'warn');
+      if (e === 'pullLeft' || e === 'pullRight') this.flash(t(e), 5, 'warn');
       if (e === 'nostart') this.flash(ph.noStartReason === 'water' ? t('floodedEngine') : ph.noStartReason === 'engine' ? t('brokenEngine') : t('noFuel'), 4, 'warn');
       if (e === 'dead') this.flash(t('engineDead'), 4, 'warn');
       if (e === 'empty') this.flash(t('fuelEmpty'), 4, 'warn');

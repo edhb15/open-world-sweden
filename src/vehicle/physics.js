@@ -196,7 +196,13 @@ export class CarPhysics {
     const maxA = S.max * Math.PI / 180;
     let target = clamp(input.steer || 0, -1, 1) * maxA;
     if (input.steerAssist) target /= 1 + Math.max(0, Math.abs(fwdSpeed) - 4) * 0.035;
-    target += (this.damage.front * 0.03) * (this.damage.left > this.damage.right ? -1 : 1);
+    // a badly damaged front end bends the steering: a gentle pull toward the damaged side
+    // (none from minor bumps; at most ~0.15 degrees of wheel angle for a wrecked front)
+    const Dm = this.damage, side = Dm.left - Dm.right;
+    const pull = Math.abs(side) > 0.08 ? 0.0026 * smooth(0.5, 1, Dm.front) * Math.sign(-side) : 0;
+    target += pull;
+    if (pull && !this.pullWarned) { this.pullWarned = true; this.events.push(pull < 0 ? 'pullLeft' : 'pullRight'); }
+    if (!pull) this.pullWarned = false;
     const rate = input.directSteer ? 50 : maxA * 2.6;
     this.steerAngle += clamp(target - this.steerAngle, -rate * dt, rate * dt);
     const d = this.steerAngle;

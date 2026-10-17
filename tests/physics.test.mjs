@@ -156,6 +156,16 @@ for (const id of ['245', 'kompis']) {
   for (let i = 0; i < 240 * 3; i++) c.step(DT, { brake: 1, clutch: 1, ignition: i === 0 }, env);
   check('245 no auto clutch: starts in gear with clutch held', c.running ? 1 : 0, 1, 1, '');
 }
+// 7d. straight-line tracking: hands off at 90 km/h for 200 m. A car with a dented front
+//     (one 50 km/h crash on the left) must still go straight; only a wrecked front pulls gently.
+for (const [label, dmg, lo, hi] of [['undamaged', {}, -0.3, 0.3], ['50 km/h front-left crash', { front: 0.55, left: 0.39 }, -0.5, 0.5], ['wrecked front (pulls left)', { front: 1, left: 0.6, right: 0.1 }, -30, -5]]) {
+  const c = mk('v7');
+  Object.assign(c.damage, dmg);
+  const env = flat();
+  let k = 0;
+  while (-c.p[2] < 200 && k++ < 240 * 30) c.step(DT, { throttle: kmh(c) < 90 ? 0.8 : 0.3, steer: 0, steerAssist: true }, env);
+  check(`V7 hands-off drift over 200 m, ${label}`, c.p[0], lo, hi, 'm');
+}
 // 8. fuel consumption at steady 90 km/h (L/100km)
 {
   const c = mk('v7');

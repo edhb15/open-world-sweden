@@ -36,6 +36,7 @@ const STR = {
     stallHint: 'Motorn tjuvstannade – tryck ned kopplingen (C) när du stannar',
     brokenEngine: 'Motorn är trasig – tryck R för bärgning', noFuel: 'Tanken är tom – tryck R för bärgning eller tanka', floodedEngine: 'Motorn har fått in vatten – tryck R för bärgning',
     towed: 'Bärgning: bilen är bogserad och lagad så att den går att köra ({cost})',
+    pullLeft: 'Hjulinställningen är skadad – bilen drar åt vänster. Laga bilen i bilhallen.', pullRight: 'Hjulinställningen är skadad – bilen drar åt höger. Laga bilen i bilhallen.',
     newGame: 'Nytt spel', home: 'Hemma', score: 'Körprofil', fineList: 'Böter', noFines: 'Inga böter – snyggt!',
   },
   en: {
@@ -72,6 +73,7 @@ const STR = {
     stallHint: 'The engine stalled – press the clutch (C) when you stop',
     brokenEngine: 'The engine is broken – press R to call a tow truck', noFuel: 'Out of fuel – press R to call a tow truck, or refuel', floodedEngine: 'Water in the engine – press R to call a tow truck',
     towed: 'Towed: the car has been recovered and patched up enough to drive ({cost})',
+    pullLeft: 'The steering is bent – the car pulls to the left. Get it repaired at a dealership.', pullRight: 'The steering is bent – the car pulls to the right. Get it repaired at a dealership.',
     newGame: 'New game', home: 'Home', score: 'Driver profile', fineList: 'Fines', noFines: 'No fines – well done!',
   },
 };
