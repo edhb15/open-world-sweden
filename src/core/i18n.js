@@ -32,6 +32,10 @@ const STR = {
     collision: 'Krock!', moose: 'Älg på vägen!', deer: 'Rådjur på vägen!', controlsText: 'Tangentbord, handkontroll och ratt',
     tips: 'Tips: Håll till höger. Kör med halvljus även på dagen. Hastighetsgränsen står på de gula skyltarna.',
     wheelSetup: 'Ratt & pedaler', bindSteer: 'Ratt', bindThrottle: 'Gaspedal', bindBrake: 'Broms', bindClutch: 'Koppling', bindUp: 'Växla upp', bindDown: 'Växla ner', bindPrompt: 'Rör kontrollen…',
+    needClutch: 'Tryck ned kopplingen (C) eller lägg i friläge – eller slå på automatisk koppling i Inställningar',
+    stallHint: 'Motorn tjuvstannade – tryck ned kopplingen (C) när du stannar',
+    brokenEngine: 'Motorn är trasig – tryck R för bärgning', noFuel: 'Tanken är tom – tryck R för bärgning eller tanka', floodedEngine: 'Motorn har fått in vatten – tryck R för bärgning',
+    towed: 'Bärgning: bilen är bogserad och lagad så att den går att köra ({cost})',
     newGame: 'Nytt spel', home: 'Hemma', score: 'Körprofil', fineList: 'Böter', noFines: 'Inga böter – snyggt!',
   },
   en: {
@@ -64,6 +68,10 @@ const STR = {
     collision: 'Crash!', moose: 'Moose on the road!', deer: 'Deer on the road!', controlsText: 'Keyboard, gamepad and steering wheel',
     tips: 'Tip: Keep right. Dipped headlights are mandatory, even in daylight. Speed limits are on the yellow signs.',
     wheelSetup: 'Wheel & pedals', bindSteer: 'Steering', bindThrottle: 'Throttle', bindBrake: 'Brake', bindClutch: 'Clutch', bindUp: 'Shift up', bindDown: 'Shift down', bindPrompt: 'Move the control…',
+    needClutch: 'Press the clutch (C) or select neutral – or turn on the automatic clutch in Settings',
+    stallHint: 'The engine stalled – press the clutch (C) when you stop',
+    brokenEngine: 'The engine is broken – press R to call a tow truck', noFuel: 'Out of fuel – press R to call a tow truck, or refuel', floodedEngine: 'Water in the engine – press R to call a tow truck',
+    towed: 'Towed: the car has been recovered and patched up enough to drive ({cost})',
     newGame: 'New game', home: 'Home', score: 'Driver profile', fineList: 'Fines', noFines: 'No fines – well done!',
   },
 };

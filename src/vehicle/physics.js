@@ -302,7 +302,8 @@ export class CarPhysics {
       }
     }
     this.pedalThrottle = throttle; this.pedalBrake = brake;
-    // ignition
+    // ignition (manual without auto clutch: the clutch must be pressed, or neutral selected)
+    this.clutchPedal = input.clutch || 0;
     if (input.ignition) this.toggleIgnition();
     if (this.starter > 0) {
       this.starter -= dt;
@@ -314,7 +315,10 @@ export class CarPhysics {
           this.we = Math.max(this.we, E.idle * 1.25 * Math.PI / 30);
           this.stallGrace = 1.0;
         }
-        else this.events.push('nostart');
+        else {
+          this.noStartReason = this.flooded ? 'water' : this.damage.engine >= 1 ? 'engine' : 'fuel';
+          this.events.push('nostart');
+        }
       }
     }
     if (this.ev) { this.we = Math.abs(this.wheelsDrivenSpeed()) * Math.abs(this.ratio(1)); }
@@ -482,9 +486,15 @@ export class CarPhysics {
         if (this.opts.autoClutch) {
           const idle = E.idle;
           const slowLaunch = smooth(idle + 120, idle + 1100, rpm);
-          const moving = Math.abs(this.drivenSpeed() * Gr) * 30 / Math.PI > idle + 200;
+          // gearbox input speed, signed: rolling backwards in a forward gear is negative
+          const gbRpm = this.drivenSpeed() * Gr * 30 / Math.PI;
+          const moving = gbRpm > idle + 200;
           eng = moving ? 1 : slowLaunch;
           if (brake > 0.3 && Math.abs(fwdSpeed) < 2 && throttle < 0.1) eng = 0;
+          // below idle without throttle (slowing down, rolling back, wheels locked): declutch
+          if (gbRpm < idle * 0.9 && throttle < 0.15) eng = 0;
+          // anti-stall: never let the auto clutch drag the engine below idle
+          if (rpm < idle * 0.8) eng = Math.min(eng, smooth(idle * 0.55, idle * 0.8, rpm) * 0.5);
           if (this.shiftT > 0) eng = 0;
           if (input.clutch > 0) eng = Math.min(eng, 1 - input.clutch);
         } else eng = 1 - clamp(input.clutch || 0, 0, 1);
@@ -693,7 +703,7 @@ export class CarPhysics {
     if (this.running) { this.running = false; this.events.push('stop'); return; }
     if (this.starter > 0) return;
     if (this.ev) { if (this.fuel > 0) { this.running = true; this.events.push('ready'); } return; }
-    if (!this.autoMode && this.gear !== 0 && !(this.opts.autoClutch)) { this.events.push('needclutch'); }
+    if (!this.autoMode && this.gear !== 0 && !this.opts.autoClutch && !(this.clutchPedal > 0.5)) { this.events.push('needclutch'); return; }
     this.starter = 0.75 + Math.random() * 0.4;
     this.events.push('crank');
   }
@@ -722,6 +732,8 @@ export class CarPhysics {
     }
     const ng = clamp(this.gear + dir, -1, this.nGears);
     if (ng === this.gear) return;
+    // without the auto clutch a gear only goes in with the clutch pressed (neutral always)
+    if (!this.opts.autoClutch && ng !== 0 && this.running && !(this.clutchPedal > 0.5)) { this.events.push('grind', 'needclutch'); return; }
     if (ng === -1 && this.fwdSpeed < -0.0 && false) return;
     if (ng === -1 && Math.abs(this.fwdSpeed) > 2) { this.events.push('grind'); return; }
     this.gear = ng;

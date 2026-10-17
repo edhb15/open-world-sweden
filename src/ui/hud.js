@@ -107,10 +107,16 @@ export class HUD {
       fps.classList.toggle('hidden', !settings.showFps);
       if (settings.showFps) fps.textContent = `${game.fps.toFixed(0)} fps · ${game.frameMs.toFixed(1)} ms · ${game.renderer.info.render.calls} dc · ${(game.renderer.info.render.triangles / 1000).toFixed(0)}k tri`;
     }
-    if (!ph.running && !(ph.starter > 0) && !game.inMenu) this.setPrompt(t('pressIgnition', { key: 'I' }));
-    else if (this.promptOwner === 'hud') this.setPrompt(null);
+    if (!ph.running && !(ph.starter > 0) && !game.inMenu) {
+      // say why the engine will not start instead of just asking for the key again
+      const why = ph.flooded ? t('floodedEngine') : ph.damage.engine >= 1 ? t('brokenEngine') : ph.fuel <= 0.05 ? t('noFuel')
+        : !ph.autoMode && ph.gear !== 0 && !ph.opts.autoClutch ? t('pressIgnition', { key: 'I' }) + ' · ' + t('needClutch') : null;
+      this.setPrompt(why || t('pressIgnition', { key: 'I' }));
+    } else if (this.promptOwner === 'hud') this.setPrompt(null);
     for (const e of P.events || []) {
-      if (e === 'stall') this.flash(t('engineStalled'), 2.5, 'warn');
+      if (e === 'stall') this.flash(ph.opts.autoClutch ? t('engineStalled') : t('stallHint'), 3, 'warn');
+      if (e === 'needclutch') this.flash(t('needClutch'), 3.5, 'warn');
+      if (e === 'nostart') this.flash(ph.noStartReason === 'water' ? t('floodedEngine') : ph.noStartReason === 'engine' ? t('brokenEngine') : t('noFuel'), 4, 'warn');
       if (e === 'dead') this.flash(t('engineDead'), 4, 'warn');
       if (e === 'empty') this.flash(t('fuelEmpty'), 4, 'warn');
     }

@@ -143,6 +143,19 @@ for (const id of ['245', 'kompis']) {
   for (let i = 0; i < 240 * 5; i++) step({ throttle: 0, brake: 1 });
   check(`${id} ignition start, launch & hard stop: stalls`, stalls, 0, 0, '');
 }
+// 7c. without the auto clutch: no cranking in gear unless the clutch is pressed
+//     (otherwise the engine would start and stall straight away)
+{
+  const c = new CarPhysics(VEHICLE['245'], { trans: 'manual', autoClutch: false });
+  c.reset(0, 0, 0, 0);
+  const env = flat();
+  c.gear = 1;
+  const ev = [];
+  for (let i = 0; i < 240 * 3; i++) { c.step(DT, { brake: 1, ignition: i === 0 }, env); ev.push(...c.events); }
+  check('245 no auto clutch: crank in gear w/o clutch (1=refused)', !ev.includes('crank') && ev.includes('needclutch') ? 1 : 0, 1, 1, '');
+  for (let i = 0; i < 240 * 3; i++) c.step(DT, { brake: 1, clutch: 1, ignition: i === 0 }, env);
+  check('245 no auto clutch: starts in gear with clutch held', c.running ? 1 : 0, 1, 1, '');
+}
 // 8. fuel consumption at steady 90 km/h (L/100km)
 {
   const c = mk('v7');

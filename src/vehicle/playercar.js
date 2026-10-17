@@ -198,7 +198,13 @@ export class PlayerCar {
       collideBox(b, o, contacts);
       for (let k = n0; k < contacts.length; k++) contacts[k].ai = o.ref;
     }
-    for (const ct of contacts) this.resolve(ct);
+    // resolve every contact, but count damage once per impact (the strongest contact)
+    let worst = null;
+    for (const ct of contacts) {
+      const sp = this.resolve(ct);
+      if (sp > 0 && (!worst || sp > worst.speed)) worst = { speed: sp, ct };
+    }
+    if (worst) this.damageFrom(worst.speed, worst.ct);
   }
 
   resolve(ct) {
@@ -223,24 +229,34 @@ export class PlayerCar {
     const jt = clamp(-vt / kInv, -0.4 * j, 0.4 * j);
     P.applyImpulse(nx * j + tx * jt, 0, nz * j + tz * jt, ct.px, py, ct.pz);
     if (ct.ai) ct.ai.hit(-(nx * j + tx * jt), -(nz * j + tz * jt), this);
-    // damage & events
-    const impactSpeed = -vn;
-    if (impactSpeed > 1.2) {
-      const now = this.game.time;
-      if (now - this.lastImpact > 0.25 || impactSpeed > 5) {
-        this.lastImpact = now;
-        const dmg = Math.max(0, impactSpeed - 2.5) * 0.035 * (this.spec.mass < 3000 ? 1 : 0.4);
-        const lb = P.toBody(ct.px - P.p[0], 0, ct.pz - P.p[2], [0, 0, 0]);
-        const D = P.damage;
-        D.body = clamp(D.body + dmg, 0, 1);
-        if (lb[2] < -this.spec.body.L * 0.25) { D.front = clamp(D.front + dmg * 1.4, 0, 1); D.engine = clamp(D.engine + dmg * 0.9, 0, 1); }
-        else if (lb[2] > this.spec.body.L * 0.25) D.rear = clamp(D.rear + dmg * 1.4, 0, 1);
-        if (lb[0] < 0) D.left = clamp(D.left + dmg, 0, 1); else D.right = clamp(D.right + dmg, 0, 1);
-        if (impactSpeed > 9) D.glass = clamp(D.glass + dmg * 1.2, 0, 1);
-        if (D.engine >= 1 && P.running) { P.running = false; P.events.push('dead'); }
-        this.impacts.push({ speed: impactSpeed, x: ct.px, z: ct.pz, kind: ct.ai ? 'car' : ct.c ? (ct.c.tree ? 'tree' : ct.c.bld ? 'building' : 'object') : 'object', lx: lb[0], lz: lb[2] });
-      }
-    }
+    return -vn; // closing speed of this contact
+  }
+
+  /* Damage from one impact. A crash is one event even though its contacts persist for
+     several physics steps: within a short window only a harder hit adds damage. */
+  damageFrom(impactSpeed, ct) {
+    if (impactSpeed <= 1.2) return;
+    const P = this.phys;
+    const now = this.game.time;
+    const fresh = now - this.lastImpact > 0.4;
+    const prev = fresh ? 0 : this.lastImpactSpeed || 0;
+    if (!fresh && impactSpeed <= prev + 0.5) return;
+    this.lastImpact = now; this.lastImpactSpeed = impactSpeed;
+    const heavy = this.spec.mass < 3000 ? 1 : 0.4;
+    const k = (v) => Math.max(0, v - 2.5) * 0.035 * heavy;
+    const dmg = k(impactSpeed) - k(prev);
+    // the engine only suffers in real frontal crashes (roughly above 20 km/h)
+    const ke = (v) => Math.max(0, v - 5.5) * 0.028 * heavy;
+    const dmgEngine = ke(impactSpeed) - ke(prev);
+    const lb = P.toBody(ct.px - P.p[0], 0, ct.pz - P.p[2], [0, 0, 0]);
+    const D = P.damage;
+    D.body = clamp(D.body + dmg, 0, 1);
+    if (lb[2] < -this.spec.body.L * 0.25) { D.front = clamp(D.front + dmg * 1.4, 0, 1); D.engine = clamp(D.engine + dmgEngine, 0, 1); }
+    else if (lb[2] > this.spec.body.L * 0.25) D.rear = clamp(D.rear + dmg * 1.4, 0, 1);
+    if (lb[0] < 0) D.left = clamp(D.left + dmg, 0, 1); else D.right = clamp(D.right + dmg, 0, 1);
+    if (impactSpeed > 9) D.glass = clamp(D.glass + dmg * 1.2, 0, 1);
+    if (D.engine >= 1 && P.running) { P.running = false; P.events.push('dead'); }
+    if (fresh) this.impacts.push({ speed: impactSpeed, x: ct.px, z: ct.pz, kind: ct.ai ? 'car' : ct.c ? (ct.c.tree ? 'tree' : ct.c.bld ? 'building' : 'object') : 'object', lx: lb[0], lz: lb[2] });
   }
 
   updateLights(dt, inp) {

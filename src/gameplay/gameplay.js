@@ -174,9 +174,20 @@ export class Gameplay {
   /* ---------------- reset to road ---------------- */
   resetCar() {
     const g = this.game;
-    if (!g.player) return;
+    const P = g.player;
+    if (!P) return;
     g.resetToRoad();
-    this.msg(t('reset'), 1.5);
+    const ph = P.phys;
+    // a car that cannot be started is recovered by a tow truck and patched up
+    const stranded = ph.flooded || ph.damage.engine >= 1 || ph.fuel <= 0.05;
+    if (stranded) {
+      const cost = 1500;
+      ph.flooded = false;
+      ph.damage.engine = Math.min(ph.damage.engine, 0.5);
+      ph.fuel = Math.max(ph.fuel, Math.min(P.spec.fuel.tank, ph.ev ? P.spec.fuel.tank * 0.15 : 8));
+      this.pay(cost, 'tow');
+      this.msg(t('towed', { cost: formatKr(cost) }), 4.5, 'good');
+    } else this.msg(t('reset'), 1.5);
   }
 
   /* ---------------- fines ---------------- */
